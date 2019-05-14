@@ -27,6 +27,10 @@ ltlfilt -c -f '
     )
     &&
     G(
+	(irq && pc_in_cr) -> reset
+    )
+    &&
+    G(
         ( pc_in_cr && w_en && !(daddr_in_XS) && !(daddr_in_MR) ) -> reset
     )
     &&
@@ -49,7 +53,7 @@ ltlfilt -c -f '
 
 )	->	(
     G(
-        ( AR_is_m && (!reset U pc_is_crmax) && pc_is_crmin && MR_is_n) -> F(pc_is_crmax && hmac)
+        ( AR_is_m && ((!reset && !irq) U pc_is_crmax) && pc_is_crmin && MR_is_n) -> F(pc_is_crmax && hmac)
     )
 )
 ' --equivalent-to 'True'
