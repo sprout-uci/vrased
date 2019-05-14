@@ -1,0 +1,64 @@
+#!/bin/sh
+ltlfilt -c -f '
+(
+    G(pc_is_crmax -> pc_in_cr)
+    &&
+    G(pc_is_crmin -> pc_in_cr)
+    &&
+    G( !(pc_is_crmin && pc_is_crmax) )
+    &&
+    G( !(i_in_MR && i_in_XS) )
+    &&
+    G( !(dma_addr_in_MR && dma_addr_in_XS) )
+    &&    
+
+    G( (daddr_is_i && i_in_MR) -> daddr_in_MR)
+    &&
+    G( (daddr_is_i && i_in_XS) -> daddr_in_XS)
+    &&
+    G( (dma_addr_is_i && i_in_MR) -> dma_addr_in_MR)
+    &&
+    G( (dma_addr_is_i && i_in_XS) -> dma_addr_in_XS)
+    &&
+
+
+    G( (readMem && mem_is_i) -> ((daddr_is_i && r_en) || (dma_addr_is_i && dma_en)) )
+    &&
+    G( (modifyMem && mem_is_i) -> ((daddr_is_i && w_en) || (dma_addr_is_i && dma_en)) )
+    &&
+
+    G( (!w_en && modifyMem && mem_is_i) -> dma_addr_is_i)    
+    &&
+
+    G( (daddr_is_i && i_in_XS) -> daddr_in_XS)
+    &&
+    G( (daddr_is_i && daddr_in_XS) -> i_in_XS)
+    &&
+
+    G( (daddr_is_i && !i_in_MR) -> !daddr_in_MR)
+    &&
+
+    G( (mem_is_i && !i_in_MR) -> G(mem_is_i -> !i_in_MR) )
+    &&
+
+    G( (mem_is_i && i_in_XS) -> G(mem_is_i -> i_in_XS) )
+    &&
+
+
+
+    G ( (!pc_in_cr && (r_en || w_en) && daddr_in_XS) -> reset )
+    &&
+    G ( (pc_in_cr && w_en && !daddr_in_XS && !daddr_in_MR) -> reset )
+    &&
+    G ( (dma_en && dma_addr_in_XS) -> reset )
+    &&
+    G ( (pc_in_cr && dma_en) -> reset)
+
+)	->	(
+    G(
+    
+        (!reset && pc_in_cr && modifyMem && mem_is_i && !i_in_MR) -> G ( ((!pc_in_cr && readMem && mem_is_i) || (mem_is_i && dma_addr_is_i && dma_en)) -> reset )
+                        
+    )
+)
+' --equivalent-to 'True'

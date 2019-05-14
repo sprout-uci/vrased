@@ -1,0 +1,24 @@
+This is a plugin for Yosys to convert verilog with assertions into
+nuXmv format. The conversion preserves the RTL information of the
+verilog design by modeling registers as bit-vectors and memories as
+arrays.
+
+
+BUILD Instructions
+==================
+
+Run build.sh script
+
+
+RUN
+===
+
+To convert a verilog design, synthesis and flatten the design. See
+verilog2smv.sh in the script dir that facilates in the conversion.
+
+
+BENCHMARKS
+==========
+
+Verilog benchmarks are provided in the" benchmarks" dir.
+Use compile.sh for conversion.

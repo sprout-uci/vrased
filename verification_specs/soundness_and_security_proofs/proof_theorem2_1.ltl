@@ -1,0 +1,39 @@
+#!/bin/sh
+ltlfilt -c -f '
+(
+    G(pc_is_crmax -> pc_in_cr)
+    &&
+    G(pc_is_crmin -> pc_in_cr)
+    &&
+    G( !(pc_is_crmin && pc_is_crmax) )
+    &&
+
+
+    G( (readMemi && i_in_KR) -> ((daddr_in_KR && r_en) || (dma_addr_in_KR && dma_en)) )
+    &&
+    G( (readMemi && i_in_MR) -> ((daddr_in_MR && r_en) || (dma_addr_in_MR && dma_en)) )
+    &&
+    G( (readMemi && i_in_XS) -> ((daddr_in_XS && r_en) || (dma_addr_in_XS && dma_en)) )
+    &&
+
+    G ( (!pc_in_cr && r_en && daddr_in_KR) -> reset ) 
+&&
+    G ( (!pc_in_cr && (r_en || w_en) && daddr_in_XS) -> reset )
+&&
+    G ( (pc_in_cr && w_en && !daddr_in_XS && !daddr_in_MR) -> reset )
+&&
+    G ( (dma_en && dma_addr_in_KR) -> reset )
+&&
+    G ( (dma_en && dma_addr_in_XS) -> reset )
+
+)	->	(
+    G(
+        ((!pc_in_cr && readMemi && i_in_KR) -> reset)
+        &&
+        ((dma_en && dma_addr_in_KR) -> reset)
+        
+                        
+    )
+)
+' --equivalent-to 'True'
+    

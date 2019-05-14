@@ -1,0 +1,142 @@
+sh verif-tools/run
+*** This is NuSMV 2.6.0 (compiled on Wed Oct 14 15:35:00 2015)
+*** Enabled addons are: compass
+*** For more information on NuSMV see <http://nusmv.fbk.eu>
+*** or email to <nusmv-users@list.fbk.eu>.
+*** Please report bugs to <Please report bugs to <nusmv-users@fbk.eu>>
+
+*** Copyright (c) 2010-2014, Fondazione Bruno Kessler
+
+*** This version of NuSMV is linked to the CUDD library version 2.4.1
+*** Copyright (c) 1995-2004, Regents of the University of Colorado
+
+*** This version of NuSMV is linked to the MiniSat SAT solver. 
+*** See http://minisat.se/MiniSat.html
+*** Copyright (c) 2003-2006, Niklas Een, Niklas Sorensson
+*** Copyright (c) 2007-2010, Niklas Sorensson
+
+WARNING *** This version of NuSMV is linked to the zchaff SAT         ***
+WARNING *** solver (see http://www.princeton.edu/~chaff/zchaff.html). ***
+WARNING *** Zchaff is used in Bounded Model Checking when the         ***
+WARNING *** system variable "sat_solver" is set to "zchaff".          ***
+WARNING *** Notice that zchaff is for non-commercial purposes only.   ***
+WARNING *** NO COMMERCIAL USE OF ZCHAFF IS ALLOWED WITHOUT WRITTEN    ***
+WARNING *** PERMISSION FROM PRINCETON UNIVERSITY.                     ***
+WARNING *** Please contact Sharad Malik (malik@ee.princeton.edu)      ***
+WARNING *** for details.                                              ***
+
+-- specification  G ("reset" -> (("reset" U "pc" = RESET_HANDLER) |  G "reset"))  is true
+-- specification  G ((!pc_in_srom & access_key) -> "reset")  is true
+-- specification  G (((!"reset" & pc_in_srom) & !next_pc_in_srom) -> ("pc" = LAST_SMEM_ADDR | next("reset")))  is true
+-- specification  G (((!"reset" & !pc_in_srom) & next_pc_in_srom) -> (next("pc") = SMEM_BASE | next("reset")))  is true
+-- specification  G (((pc_not_in_srom & ("data_en" | "data_wr")) & daddr_in_sdata) -> "reset")  is true
+-- specification  G ((((pc_in_srom & "data_wr") & daddr_not_in_sdata) & daddr_not_in_HMAC) -> "reset")  is true
+-- specification  G (dma_access_key -> "reset")  is true
+-- specification  G (("dma_en" & pc_in_srom) -> "reset")  is true
+-- specification  G (dma_access_X_stack -> "reset")  is true
+-- specification  G ("pc" = LST_POR_ADDR -> "reset")  is true
+-- specification  G ((!"reset" & "pc" = FST_POR_ADDR) -> ((!("pc" = LAST_SMEM_ADDR) | "reset") U "pc" = LST_POR_ADDR))  is false
+-- as demonstrated by the following execution sequence
+Trace Description: LTL Counterexample 
+Trace Type: Counterexample 
+  -> State: 1.1 <-
+    "clk" = FALSE
+    "data_addr" = 0ud16_0
+    "data_en" = FALSE
+    "data_wr" = FALSE
+    "dma_addr" = 0ud16_0
+    "dma_en" = FALSE
+    "pc" = 0ud16_0
+    "AC_0.state" = TRUE
+    "X_stack_0.state" = FALSE
+    "atomicity_0.pc_state" = 0ud3_4
+    "dma_AC_0.state" = TRUE
+    "dma_X_stack_0.state" = TRUE
+    "dma_write_detect_0.state" = TRUE
+    "proof_reset_0.state" = 0ud2_1
+    dma_access_X_stack = FALSE
+    dma_access_key = FALSE
+    daddr_not_in_HMAC = TRUE
+    daddr_in_sdata = FALSE
+    daddr_not_in_sdata = TRUE
+    pc_not_in_srom = TRUE
+    access_key = FALSE
+    pc_in_srom = FALSE
+    RESET_HANDLER = 0ud16_0
+    LAST_SMEM_ADDR = 0ud16_57342
+    LST_POR_ADDR = 0ud16_44288
+    FST_POR_ADDR = 0ud16_44032
+    HMAC_SIZE = 0ud16_32
+    HMAC_BASE = 0ud16_560
+    SDATA_SIZE = 0ud16_3072
+    SDATA_BASE = 0ud16_1024
+    KMEM_SIZE = 0ud16_31
+    KMEM_BASE = 0ud16_27136
+    SMEM_SIZE = 0ud16_16384
+    SMEM_BASE = 0ud16_40960
+    "reset" = TRUE
+    next_pc_in_srom = TRUE
+  -> State: 1.2 <-
+    "data_addr" = 0ud16_32768
+    "pc" = 0ud16_40960
+    "AC_0.state" = FALSE
+    "atomicity_0.pc_state" = 0ud3_0
+    "dma_AC_0.state" = FALSE
+    "dma_X_stack_0.state" = FALSE
+    "dma_write_detect_0.state" = FALSE
+    "proof_reset_0.state" = 0ud2_0
+    pc_not_in_srom = FALSE
+    pc_in_srom = TRUE
+    "reset" = FALSE
+  -> State: 1.3 <-
+    "pc" = 0ud16_44032
+    "atomicity_0.pc_state" = 0ud3_1
+  -- Loop starts here
+  -> State: 1.4 <-
+    "data_wr" = TRUE
+    "pc" = 0ud16_49152
+    "atomicity_0.pc_state" = 0ud3_3
+    "proof_reset_0.state" = 0ud2_2
+    "reset" = TRUE
+    next_pc_in_srom = FALSE
+  -> State: 1.5 <-
+    "data_addr" = 0ud16_27136
+    "data_en" = TRUE
+    "data_wr" = FALSE
+    "dma_addr" = 0ud16_27136
+    "dma_en" = TRUE
+    "pc" = 0ud16_0
+    "X_stack_0.state" = TRUE
+    dma_access_key = TRUE
+    pc_not_in_srom = TRUE
+    access_key = TRUE
+    pc_in_srom = FALSE
+  -> State: 1.6 <-
+    "data_addr" = 0ud16_32768
+    "data_en" = FALSE
+    "dma_addr" = 0ud16_32768
+    "dma_en" = FALSE
+    "AC_0.state" = TRUE
+    "X_stack_0.state" = FALSE
+    "atomicity_0.pc_state" = 0ud3_4
+    "dma_AC_0.state" = TRUE
+    dma_access_key = FALSE
+    access_key = FALSE
+    "reset" = FALSE
+    next_pc_in_srom = TRUE
+  -> State: 1.7 <-
+    "dma_addr" = 0ud16_0
+    "pc" = 0ud16_40960
+    "AC_0.state" = FALSE
+    "atomicity_0.pc_state" = 0ud3_0
+    "dma_AC_0.state" = FALSE
+    pc_not_in_srom = FALSE
+    pc_in_srom = TRUE
+  -> State: 1.8 <-
+    "pc" = 0ud16_57340
+    "atomicity_0.pc_state" = 0ud3_1
+  -> State: 1.9 <-
+    "data_wr" = TRUE
+    "pc" = 0ud16_49152
+    "atomicity_0.pc_state" = 0ud3_3
+    "reset" = TRUE

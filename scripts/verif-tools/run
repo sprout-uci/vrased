@@ -1,0 +1,24 @@
+#!/bin/bash
+rm -rf build-verif
+mkdir -p build-verif
+
+
+# Copy VRASED's Verilog source code to temp directory
+cp ../openmsp430/msp_core/openMSP430_undefines.v ./build-verif/
+cp ../openmsp430/msp_core/openMSP430_defines.v ./build-verif/
+cp ../vrased/hw-mod/*.v ./build-verif/
+# Specification
+cp ../verification_specs/ltl_specs.smv ./build-verif
+
+for filename in ./build-verif/*.v; do
+	sed -i "s/always @(posedge clk)/always @(*)/g" $filename
+done
+
+sh ./verif-tools/verilog2smv.sh ./build-verif/vrased.v ./build-verif/vrased_generated.smv vrased
+
+sed -i "s/IVAR/VAR/g" ./build-verif/vrased_generated.smv # Hacky here since IVAR doesnt work properly
+echo '#include "ltl_specs.smv"' >> ./build-verif/vrased_generated.smv
+
+./verif-tools/NuSMV -pre cpp ./build-verif/vrased_generated.smv
+
+rm -rf build-verif

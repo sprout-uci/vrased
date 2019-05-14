@@ -1,0 +1,78 @@
+#!/bin/sh
+ltlfilt -c -f '
+(
+    ############################## Machine Model #################################
+    # If PC points to the last instruction of CR, it is in CR
+    G(pc_is_crmax -> pc_in_cr)
+    &&
+    # If PC points to the first instruction of CR, it is in CR
+    G(pc_is_crmin -> pc_in_cr)
+    &&
+    # PC cannot point to both first and last instructions of CR at the same time
+    G( !(pc_is_crmin && pc_is_crmax) )
+    &&
+    # MR and XS are disjoint memory regions (addr i cannot be inside both at the same time)
+    G( !(i_in_MR && i_in_XS) )
+    &&
+    # MR and XS are disjoint memory regions (dma_addr cannot be inside both at the same time)
+    G( !(dma_addr_in_MR && dma_addr_in_XS) )
+    &&    
+
+    # Next 4 are self-explanatory
+    G( (daddr_is_i && i_in_MR) -> daddr_in_MR)
+    &&
+    G( (daddr_is_i && i_in_XS) -> daddr_in_XS)
+    &&
+    G( (dma_addr_is_i && i_in_MR) -> dma_addr_in_MR)
+    &&
+    G( (dma_addr_is_i && i_in_XS) -> dma_addr_in_XS)
+    &&
+
+
+    # Next 2 are execution model (Definition 5.2 and 5.1, respectively)
+    G( (readMem && mem_is_i) -> ((daddr_is_i && r_en) || (dma_addr_is_i && dma_en)) )
+    &&
+    G( (modifyMem && mem_is_i) -> ((daddr_is_i && w_en) || (dma_addr_is_i && dma_en)) )
+    &&
+
+    # Modifying memory address "i" without "w_en" implies dma enabled
+    G( (!w_en && modifyMem && mem_is_i) -> dma_addr_is_i)    
+    &&
+
+    # Next 3 are self-explanatory
+    G( (daddr_is_i && i_in_XS) -> daddr_in_XS)
+    &&
+    G( (daddr_is_i && daddr_in_XS) -> i_in_XS)
+    &&
+    G( (daddr_is_i && !i_in_MR) -> !daddr_in_MR)
+    &&
+
+    # address "i" not in MR implies it will never be in MR (because it is a physical address)
+    G( (mem_is_i && !i_in_MR) -> G(mem_is_i -> !i_in_MR) )
+    &&
+
+    # address "i" in XS implies it will always be in XS (because it is a physical address)
+    G( (mem_is_i && i_in_XS) -> G(mem_is_i -> i_in_XS) )
+    &&
+    #############################################################################
+
+
+
+    # LTL 5, 6, 8, 9
+    G ( (!pc_in_cr && (r_en || w_en) && daddr_in_XS) -> reset )
+    &&
+    G ( (pc_in_cr && w_en && !daddr_in_XS && !daddr_in_MR) -> reset )
+    &&
+    G ( (dma_en && dma_addr_in_XS) -> reset )
+    &&
+    G ( (pc_in_cr && dma_en) -> reset)
+
+)	->	(
+    # Theorem 2 part 2: no key leakage through memory
+    G(
+    
+        (!reset && pc_in_cr && modifyMem && mem_is_i && !i_in_MR) -> G ( ((!pc_in_cr && readMem && mem_is_i) || (mem_is_i && dma_addr_is_i && dma_en)) -> reset )
+                        
+    )
+)
+' --equivalent-to 'True'

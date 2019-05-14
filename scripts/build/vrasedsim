@@ -1,0 +1,185 @@
+#!/bin/bash
+#------------------------------------------------------------------------------
+# Copyright (C) 2001 Authors
+#
+# This source file may be used and distributed without restriction provided
+# that this copyright statement is not removed from the file and that any
+# derivative work contains the original copyright notice and the associated
+# disclaimer.
+#
+# This source file is free software; you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as published
+# by the Free Software Foundation; either version 2.1 of the License, or
+# (at your option) any later version.
+#
+# This source is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+# FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public
+# License for more details.
+#
+# You should have received a copy of the GNU Lesser General Public License
+# along with this source; if not, write to the Free Software Foundation,
+# Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+#
+#------------------------------------------------------------------------------
+# 
+# File Name: vrasedsim
+# 
+# Author(s):
+#             - Olivier Girard,    olgirard@gmail.com
+#
+#------------------------------------------------------------------------------
+# $Rev$
+# $LastChangedBy$
+# $LastChangedDate$
+#------------------------------------------------------------------------------
+
+###############################################################################
+#                            Parameter Check                                  #
+###############################################################################
+EXPECTED_ARGS=2
+if [ $# -ne $EXPECTED_ARGS ]; then
+  echo "ERROR    : wrong number of arguments"
+  echo "USAGE    : vrasedsim <cfolder> <mem-only-flag>"
+  echo "Example  : vrasedsim application"
+  echo ""
+  echo "In order to switch the verilog simulator, the MYVLOG environment"
+  echo "variable can be set to the following values:"
+  echo ""
+  echo "                  - iverilog  : Icarus Verilog  (default)"
+  echo "                  - cver      : CVer"
+  echo "                  - verilog   : Verilog-XL"
+  echo "                  - ncverilog : NC-Verilog"
+  echo "                  - vcs       : VCS"
+  echo "                  - vsim      : Modelsim"
+  echo ""
+  exit 1
+fi
+
+
+###############################################################################
+#                     Check if the required files exist                       #
+###############################################################################
+cfolder=$1
+verfile=$cfolder"/simulation/sim.v";
+submitfile="./build/submit.f";
+incfile="../openmsp430/msp_core/openMSP430_defines.v";
+tmpfolder=$cfolder
+memfolder="../msp_bin"
+
+if [ ! -e $verfile ]; then
+    echo "Verilog stimulus file $verfile doesn't exist: $verfile"
+    exit 1
+fi
+if [ ! -e $submitfile ]; then
+    echo "Verilog submit file $submitfile doesn't exist: $submitfile"
+    exit 1
+fi
+
+echo $cfolder
+echo $verfile
+echo $submitfile
+echo $incfile
+echo $tmpfolder
+
+###############################################################################
+#                               Cleanup                                       #
+###############################################################################
+echo "Cleanup..."
+rm -rf *.mem
+rm -rf simv 
+
+###############################################################################
+#                              Run simulation                                 #
+###############################################################################
+echo " ======================================================="
+echo "| Start simulation:             $1"
+echo " ======================================================="		
+
+# Create links
+cp $verfile $tmpfolder/stimulus.v
+#n -s $verfile $tmpfolder/stimulus.v
+
+# Make local copy of the openMSP403 configuration file and remove comments
+cp  $incfile  $tmpfolder/pmem.inc
+sed -i "/^\/\// s,.*,," $tmpfolder/pmem.inc
+
+# Get Program Memory size
+pmemunit=`grep PMEM_SIZE_ $tmpfolder/pmem.inc | grep -v ifdef | grep -v "//" | cut -d'_' -f4`
+pmemsize=`grep PMEM_SIZE_ $tmpfolder/pmem.inc | grep -v ifdef | grep -v "//" | cut -d'_' -f3`
+pmemsize=${pmemsize/p/.}
+if [ $pmemunit == "KB" ]
+  then
+    pmemsize=`echo "pmemsize=$pmemsize * 1024; pmemsize /= 1; pmemsize" | bc`
+fi
+
+# Get Data Memory size
+dmemunit=`grep DMEM_SIZE_ $tmpfolder/pmem.inc | grep -v ifdef | grep -v "//" | cut -d'_' -f4`
+dmemsize=`grep DMEM_SIZE_ $tmpfolder/pmem.inc | grep -v ifdef | grep -v "//" | cut -d'_' -f3`
+dmemsize=${dmemsize/p/.}
+if [ $dmemunit == "KB" ]
+  then
+    dmemsize=`echo "dmemsize=$dmemsize * 1024; dmemsize /= 1; dmemsize" | bc`
+fi
+
+# Get SROM Memory size
+smemunit=`grep SMEM_SIZE_ $tmpfolder/pmem.inc | grep -v ifdef | grep -v "//" | cut -d'_' -f4`
+smemsize=`grep SMEM_SIZE_ $tmpfolder/pmem.inc | grep -v ifdef | grep -v "//" | cut -d'_' -f3`
+smemsize=${smemsize/p/.}
+if [ $smemunit == "KB" ]
+  then
+    smemsize=`echo "smemsize=$smemsize * 1024; smemsize /= 1; smemsize" | bc`
+fi
+
+# Get peripheral size
+persize=`grep PER_SIZE_ $tmpfolder/pmem.inc | grep -v ifdef | grep -v "//" | cut -d'_' -f3`
+
+smem_offset=`echo "smemoff=64*1024 - $smemsize - $pmemsize ; smemoff /= 1; smemoff " | bc`
+
+# Get SKEY Memory size
+skeysize=`grep SKEY_SIZE $tmpfolder/pmem.inc | grep -v ifdef | grep -v "//"  | cut -d' ' -f3`
+skeybase=0x`grep SKEY_BASE $tmpfolder/pmem.inc | grep -v ifdef   | grep -v "//" | cut -d"h" -f2`
+
+cwd=$(pwd)
+
+cd $cfolder
+make clean
+
+cp linker.msp430.x pmem.def
+pmembase=$((0x10000-$pmemsize))
+smembase=$(($pmembase-$smemsize))
+dmembase=$persize
+sed -i "s/PMEM_BASE/$pmembase/g" pmem.def
+sed -i "s/DMEM_BASE/$dmembase/g" pmem.def
+sed -i "s/SMEM_BASE/$smembase/g" pmem.def
+sed -i "s/PMEM_SIZE/$pmemsize/g" pmem.def
+sed -i "s/DMEM_SIZE/$dmemsize/g" pmem.def
+sed -i "s/SMEM_SIZE/$smemsize/g" pmem.def
+make
+cd $cwd
+
+# Generate Program memory file
+echo "Convert IHEX file to Verilog MEMH format..."
+./build/ihex2mem.tcl -ihex $cfolder/vrased.a43 -out $memfolder/pmem.mem -mem_size $pmemsize 
+./build/ihex2mem.tcl -ihex $cfolder/vrased.a43 -out $memfolder/smem.mem -mem_size   $smemsize -mem_offset $smem_offset
+
+# Copy *.mem to current dir since pmem.v and smem.v read memory from "./"
+cp $memfolder/pmem.mem .
+cp $memfolder/smem.mem .
+# Copy stimulus file to simulation (tb) directory
+cp $tmpfolder/stimulus.v ../openmsp430/simulation/stimulus.v
+
+# Start verilog simulation
+if [ "$2" = false ] ; then
+	echo "Start Verilog simulation..."
+	./build/rtlsim.sh    $tmpfolder/stimulus.v $memfolder/pmem.mem $submitfile 
+fi
+
+
+echo "Cleanup..."
+rm -rf pmem.*
+rm -rf smem.*
+rm -rf stimulus.v
+rm -rf simv 
+
+
