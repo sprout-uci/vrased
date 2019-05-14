@@ -4,6 +4,7 @@
 `include "dma_AC.v"	
 `include "dma_detect.v"	
 `include "dma_X_stack.v"
+`include "proof_reset.v"
 
 `ifdef OMSP_NO_INCLUDE
 `else
@@ -19,6 +20,8 @@ module vrased (
     
     dma_addr,
     dma_en,
+
+    irq,
     
     reset
 );
@@ -29,6 +32,7 @@ input           data_wr;
 input   [15:0]  data_addr;
 input   [15:0]  dma_addr;
 input           dma_en;
+input           irq;
 output          reset;
 
 // MACROS ///////////////////////////////////////////
@@ -38,11 +42,12 @@ parameter SDATA_SIZE = 16'hC00;
 parameter HMAC_BASE = 16'h0230;
 parameter HMAC_SIZE = 16'h0020;
 //
-parameter SMEM_BASE = `SMEM_BASE;
-parameter SMEM_SIZE = `SMEM_SIZE;
+parameter SMEM_BASE = 16'hA000;
+parameter SMEM_SIZE = 16'h4000;
 //
-parameter KMEM_BASE = `SKEY_BASE;
-parameter KMEM_SIZE = `SKEY_SIZE;
+parameter KMEM_BASE = 16'h6A00;
+parameter KMEM_SIZE = 16'h001F;
+
 /////////////////////////////////////////////////////
 
 parameter RESET_HANDLER = 16'h0000;
@@ -134,5 +139,6 @@ dma_X_stack #(
 );
 
 assign reset = X_stack_reset | AC_reset | dma_AC_reset | dma_detect_reset | dma_X_stack_reset | atomicity_reset;
+
 
 endmodule
