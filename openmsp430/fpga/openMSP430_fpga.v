@@ -83,13 +83,33 @@ module openMSP430_fpga (
     SEG_AN0,
     SEG_AN1,
     SEG_AN2,
-    SEG_AN3
+    SEG_AN3,
 
 // RS-232 Port
-//    UART_RXD,
-//    UART_TXD,
+    UART_RXD,
+    UART_TXD,
 //    UART_RXD_A,
-//    UART_TXD_A,
+//    UART_TXD_A
+
+// JB
+    JB1,
+//    JB2,
+//    JB3,
+//    JB4,
+//    JB5,
+//    JB6,
+//    JB7
+//    JB8
+
+// JC
+    JC1,
+    JC2,
+//    JC3,
+//    JC4,
+//    JC5,
+//    JC6,
+    JC7
+//    JC8
 
 // PS/2 Mouse/Keyboard Port
 //    PS2_D,
@@ -209,10 +229,18 @@ output    SEG_AN2;
 output    SEG_AN3;
 
 // RS-232 Port
-//input     UART_RXD;
-//output    UART_TXD;
+input     UART_RXD;
+output    UART_TXD;
 //input     UART_RXD_A;
 //output    UART_TXD_A;
+
+// JB
+output       JB1;
+
+// JC
+input       JC1;
+inout      JC2;
+output      JC7;
 
 // PS/2 Mouse/Keyboard Port
 //inout     PS2_D;
@@ -321,6 +349,10 @@ wire         [7:0] p3_din;
 wire         [7:0] p3_dout;
 wire         [7:0] p3_dout_en;
 wire         [7:0] p3_sel;
+wire         [7:0] p5_din;
+wire         [7:0] p5_dout;
+wire         [7:0] p5_dout_en;
+wire         [7:0] p5_sel;
 wire        [15:0] per_dout_dio;
 
 // Timer A
@@ -336,6 +368,13 @@ wire        [15:0] per_dout_uart;
 wire               hw_uart_txd;
 wire               hw_uart_rxd;
 
+// VAPE metadata
+wire        [15:0] per_dout_vape_metadata;
+wire        [15:0] ER_min;
+wire        [15:0] ER_max;
+wire        [15:0] OR_min;
+wire        [15:0] OR_max;
+wire               exec_flag;
 
 // Others
 wire               reset_pin;
@@ -517,6 +556,7 @@ openMSP430 openMSP430_0 (
     .puc_rst           (puc_rst),      // Main system reset
     .smclk             (),             // ASIC ONLY: SMCLK
     .smclk_en          (smclk_en),     // FPGA ONLY: SMCLK enable
+    .exec_flag         (exec_flag),    // VAPE
 
 // INPUTs
     .cpu_en            (1'b1),         // Enable CPU code execution (asynchronous and non-glitchy)
@@ -542,7 +582,11 @@ openMSP430 openMSP430_0 (
     .reset_n           (reset_n),      // Reset Pin (low active, asynchronous and non-glitchy)
     .scan_enable       (1'b0),         // ASIC ONLY: Scan enable (active during scan shifting)
     .scan_mode         (1'b0),         // ASIC ONLY: Scan mode
-    .wkup              (1'b0)          // ASIC ONLY: System Wake-up (asynchronous and non-glitchy)
+    .wkup              (1'b0),          // ASIC ONLY: System Wake-up (asynchronous and non-glitchy)
+    .ER_min            (ER_min),
+    .ER_max            (ER_max),       // VAPE
+    .OR_min            (OR_min),
+    .OR_max            (OR_max)       // VAPE
 );
 
 
@@ -558,7 +602,7 @@ omsp_gpio #(.P1_EN(1),
             .P2_EN(1),
             .P3_EN(1),
             .P4_EN(0),
-            .P5_EN(0),
+            .P5_EN(1),
             .P6_EN(0)) gpio_0 (
 
 // OUTPUTs
@@ -576,9 +620,9 @@ omsp_gpio #(.P1_EN(1),
     .p4_dout      (),              // Port 4 data output
     .p4_dout_en   (),              // Port 4 data output enable
     .p4_sel       (),              // Port 4 function select
-    .p5_dout      (),              // Port 5 data output
-    .p5_dout_en   (),              // Port 5 data output enable
-    .p5_sel       (),              // Port 5 function select
+    .p5_dout      (p5_dout),              // Port 5 data output
+    .p5_dout_en   (p5_dout_en),              // Port 5 data output enable
+    .p5_sel       (p5_sel),              // Port 5 function select
     .p6_dout      (),              // Port 6 data output
     .p6_dout_en   (),              // Port 6 data output enable
     .p6_sel       (),              // Port 6 function select
@@ -590,7 +634,7 @@ omsp_gpio #(.P1_EN(1),
     .p2_din       (p2_din),        // Port 2 data input
     .p3_din       (p3_din),        // Port 3 data input
     .p4_din       (8'h00),         // Port 4 data input
-    .p5_din       (8'h00),         // Port 5 data input
+    .p5_din       (p5_din),         // Port 5 data input
     .p6_din       (8'h00),         // Port 6 data input
     .per_addr     (per_addr),      // Peripheral address
     .per_din      (per_din),       // Peripheral data input
@@ -694,13 +738,38 @@ omsp_uart #(.BASE_ADDR(15'h0080)) uart_0 (
 
 
 //
+// Four-Digit, Seven-Segment LED Display driver
+//----------------------------------------------
+
+VAPE_metadata VAPE_metadata_0 (
+
+// OUTPUTs
+    .per_dout     (per_dout_vape_metadata), // Peripheral data output
+    .ER_min        (ER_min),        // VAPE ER_min
+    .ER_max        (ER_max),        // VAPE ER max
+    .OR_min        (OR_min),        // VAPE OR min
+    .OR_max        (OR_max),        // VAPE _OR_max
+
+// INPUTs
+    .mclk         (mclk),          // Main system clock
+    .per_addr     (per_addr),      // Peripheral address
+    .per_din      (per_din),       // Peripheral data input
+    .per_en       (per_en),        // Peripheral enable (high active)
+    .per_we       (per_we),        // Peripheral write enable (high active)
+    .puc_rst      (puc_rst),        // Main system reset
+    .exec_flag        (exec_flag)        // VAPE exec flag
+);
+
+
+//
 // Combine peripheral data buses
 //-------------------------------
 
 assign per_dout = per_dout_dio  |
                   per_dout_tA   |
                   per_dout_7seg |
-                  per_dout_uart;
+                  per_dout_uart |
+                  per_dout_vape_metadata;
 
 //
 // Assign interrupts
@@ -852,18 +921,23 @@ ram #(`DMEM_MSB, `DMEM_SIZE) dmem_0 (
 );
 
 // Program Memory
-
-pmem #(`PMEM_MSB, `PMEM_SIZE) pmem_0 (
+// parameter ER_MAX_addr   =  16'hFF00;
+// parameter OR_MAX_addr   =  ER_MAX_addr + 16'h0002;
+// parameter EXEC_addr   =  ER_MAX_addr + 16'h0004;
+pmem #(`PMEM_MSB, `PMEM_SIZE)//, ER_MAX_addr, OR_MAX_addr, EXEC_addr)
+pmem_0 (
 
 // OUTPUTs
     .ram_dout    (pmem_dout),          // Program Memory data output
-
+//    .ER_max      (ER_max),             // VAPE
+//    .OR_max      (OR_max),             // VAPE
 // INPUTs
     .ram_addr    (pmem_addr),          // Program Memory address
     .ram_cen     (pmem_cen),           // Program Memory chip enable (low active)
     .ram_clk     (mclk),               // Program Memory clock
     .ram_din     (pmem_din),           // Program Memory data input
     .ram_wen     (pmem_wen)            // Program Memory write enable (low active)
+//    .exec_flag   (exec_flag)            // VAPE
 );
 
 //=============================================================================
@@ -876,7 +950,8 @@ pmem #(`PMEM_MSB, `PMEM_SIZE) pmem_0 (
 IBUF  SW7_PIN        (.O(p3_din[7]),                   .I(SW7));
 IBUF  SW6_PIN        (.O(p3_din[6]),                   .I(SW6));
 IBUF  SW5_PIN        (.O(p3_din[5]),                   .I(SW5));
-IBUF  SW4_PIN        (.O(p3_din[4]),                   .I(SW4));
+//IBUF  SW4_PIN        (.O(p3_din[4]),                   .I(SW4));
+//IBUF  SW4_PIN        (.O(1'b1),                   .I(SW4));
 IBUF  SW3_PIN        (.O(p3_din[3]),                   .I(SW3));
 IBUF  SW2_PIN        (.O(p3_din[2]),                   .I(SW2));
 IBUF  SW1_PIN        (.O(p3_din[1]),                   .I(SW1));
@@ -889,9 +964,11 @@ OBUF  LED7_PIN       (.I(p3_dout[7] & p3_dout_en[7]),  .O(LED7));
 OBUF  LED6_PIN       (.I(p3_dout[6] & p3_dout_en[6]),  .O(LED6));
 OBUF  LED5_PIN       (.I(p3_dout[5] & p3_dout_en[5]),  .O(LED5));
 OBUF  LED4_PIN       (.I(p3_dout[4] & p3_dout_en[4]),  .O(LED4));
+//OBUF  LED4_PIN       (.I(mclk),  .O(LED4));
 OBUF  LED3_PIN       (.I(p3_dout[3] & p3_dout_en[3]),  .O(LED3));
 OBUF  LED2_PIN       (.I(p3_dout[2] & p3_dout_en[2]),  .O(LED2));
 OBUF  LED1_PIN       (.I(p3_dout[1] & p3_dout_en[1]),  .O(LED1));
+//OBUF  LED1_PIN       (.I(mclk),  .O(LED1));
 OBUF  LED0_PIN       (.I(p3_dout[0] & p3_dout_en[0]),  .O(LED0));
 
 // Push Button Switches
@@ -947,9 +1024,18 @@ assign dbg_uart_rxd = sdi_select  ? uart_rxd_in : 1'b1;
 
 //IBUF  UART_RXD_PIN   (.O(uart_rxd_in),                 .I(UART_RXD));
 //OBUF  UART_TXD_PIN   (.I(uart_txd_out),                .O(UART_TXD));
-
 //IBUF  UART_RXD_A_PIN (.O(),                            .I(UART_RXD_A));
 //OBUF  UART_TXD_A_PIN (.I(1'b0),                        .O(UART_TXD_A));
+
+assign JC2 = p3_dout_en[4] ? p3_dout[4] : 1'bz;
+assign p3_din[4] = JC2;
+//IOBUF TMP_HUMID_PIN  (.O(p5_din[1]), .I(p5_dout[1]), .T(~p5_dout_en[1]),        .IO(JC2));
+//IOBUF TMP_HUMID_PIN  (.O(p3_dout[1]), .I(p3_din[1]), .T(p3_dout_en[1]),        .IO(JC2));
+//OBUF  SENSOR_PIN   (.I(p3_dout[1] & p3_dout_en[1]),                .O(JC2));
+//OBUF  SENSOR_PIN   (.I(1'b1),                .O(JC2));
+
+IBUF  UART_RXD_PIN   (.O(uart_rxd_in),                 .I(JC1));
+OBUF  UART_TXD_PIN   (.I(uart_txd_out),                .O(JC7));
 
 
 // PS/2 Mouse/Keyboard Port

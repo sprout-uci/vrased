@@ -69,8 +69,12 @@ initial
   begin
      //$display("Loading SKEY");
      for(i=0; i<MEM_SIZE/2; i=i+1) begin
-	   mem[i] = 16'hcccc;
-     end 
+	   mem[i] = 16'h0000;
+     end
+     mem[0] = 16'h0123;
+     mem[1] = 16'h4567;
+     mem[2] = 16'h89ab;
+     mem[3] = 16'hcdef; 
      // Uncomment for Xilinx synthesis
      //$readmemh("skey.mem",mem);
      $display("key: %h %h %h", mem[0], mem[8], mem[16]);

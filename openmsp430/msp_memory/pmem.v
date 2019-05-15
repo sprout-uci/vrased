@@ -40,6 +40,9 @@ module pmem (
 
 // OUTPUTs
     ram_dout,                      // RAM data output
+//    ER_max,         // VAPE
+//    OR_max,         // VAPE
+
 
 // INPUTs
     ram_addr,                      // RAM address
@@ -47,6 +50,7 @@ module pmem (
     ram_clk,                       // RAM clock
     ram_din,                       // RAM data input
     ram_wen                        // RAM write enable (low active)
+//    exec_flag
 );
 
 // PARAMETERs
@@ -54,9 +58,19 @@ module pmem (
 parameter ADDR_MSB   =  6;         // MSB of the address bus
 parameter MEM_SIZE   =  256;       // Memory size in bytes
 
+// VAPE PARAMETERS
+//parameter ER_MAX_addr   =  ((16'hFF00-16'hE000) >> 1);
+//parameter OR_MAX_addr   =  ER_MAX_addr + 16'h0001;
+//parameter CHAL_addr   =  ER_MAX_addr + 16'h0002;
+//parameter EXEC_addr   =  ER_MAX_addr + 16'h0004;
+
+
 // OUTPUTs
 //============
 output      [15:0] ram_dout;       // RAM data output
+// VAPE
+//output      [15:0] ER_max;         // VAPE
+//output      [15:0] OR_max;         // VAPE
 
 // INPUTs
 //============
@@ -65,7 +79,7 @@ input              ram_cen;        // RAM chip enable (low active)
 input              ram_clk;        // RAM clock
 input       [15:0] ram_din;        // RAM data input
 input        [1:0] ram_wen;        // RAM write enable (low active)
-
+//input              exec_flag;      // VAPE
 
 // RAM
 //============
@@ -84,6 +98,8 @@ initial
    begin
       // Read memory file
       $readmemh("./pmem.mem", mem);
+//      mem[ER_MAX_addr] <= 16'hE3AE;
+//      mem[OR_MAX_addr] <= 16'hF004;
 end
 
   
@@ -94,9 +110,16 @@ always @(posedge ram_clk)
       else if (ram_wen==2'b01) mem[ram_addr] <= {ram_din[15:8], mem_val[7:0]};
       else if (ram_wen==2'b10) mem[ram_addr] <= {mem_val[15:8], ram_din[7:0]};
       ram_addr_reg <= ram_addr;
+
+      // VAPE
+//      if      (exec_flag == 1'b1) mem[EXEC_addr] <= 16'hFFFF;
+//      else    mem[EXEC_addr] <= 16'h0000;
     end
 
 assign ram_dout = mem[ram_addr_reg];
+
+//assign ER_max = mem[ER_MAX_addr];
+//assign OR_max = mem[OR_MAX_addr];
 
 
 endmodule // ram
