@@ -95,6 +95,7 @@ atomicity #(
 ) atomicity_0 (
     .clk        (clk),
     .pc         (pc),
+    .irq        (irq),
     .reset      (atomicity_reset)
 );
 
