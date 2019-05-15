@@ -58,7 +58,7 @@ ltlfilt -c -f '
 
 
 
-    # LTL 5, 6, 8, 9
+    # LTL 6, 7, 9, 10
     G ( (!pc_in_cr && (r_en || w_en) && daddr_in_XS) -> reset )
     &&
     G ( (pc_in_cr && w_en && !daddr_in_XS && !daddr_in_MR) -> reset )
