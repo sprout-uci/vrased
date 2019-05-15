@@ -36,12 +36,17 @@ ltlfilt -c -f '
         ( !reset && pc_in_cr && X(!pc_in_cr) ) -> ( pc_is_crmax || X(reset) )
     )
     &&
-    # LTL 6
+    # LTL 5
+    G(
+        (pc_in_cr && dma_en) -> reset
+    )
+    &&
+    # LTL 7
     G(
         ( pc_in_cr && w_en && !(daddr_in_XS) && !(daddr_in_MR) ) -> reset
     )
     &&
-    # LTL 9
+    # LTL 10
     G(
         (pc_in_cr && dma_en) -> reset
     )
@@ -53,7 +58,7 @@ ltlfilt -c -f '
 
     # SW-ATT functional correctness (Definition 3)
     G(
-        ( pc_is_crmin && MR_is_n && ((AR_is_m && !reset && KR_is_katt && CR_is_sw_att) U pc_is_crmax) ) -> F(pc_is_crmax && hmac)
+        ( pc_is_crmin && MR_is_n && ((AR_is_m && !reset && !irq && KR_is_katt && CR_is_sw_att) U pc_is_crmax) ) -> F(pc_is_crmax && hmac)
     )
 
 
