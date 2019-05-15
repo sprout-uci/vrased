@@ -45,7 +45,7 @@ ltlfilt -c -f '
 
 
     G(
-        ( pc_is_crmin && MR_is_n && ((AR_is_m && !reset && KR_is_katt && CR_is_sw_att) U pc_is_crmax) ) -> F(pc_is_crmax && hmac)
+        ( pc_is_crmin && MR_is_n && ((AR_is_m && !reset && !irq && KR_is_katt && CR_is_sw_att) U pc_is_crmax) ) -> F(pc_is_crmax && hmac)
     )
 
 
@@ -53,7 +53,7 @@ ltlfilt -c -f '
 
 )	->	(
     G(
-        ( AR_is_m && ((!reset && !irq) U pc_is_crmax) && pc_is_crmin && MR_is_n) -> F(pc_is_crmax && hmac)
+        ( AR_is_m && (!reset U pc_is_crmax) && pc_is_crmin && MR_is_n) -> F(pc_is_crmax && hmac)
     )
 )
 ' --equivalent-to 'True'
