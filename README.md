@@ -43,9 +43,9 @@ Intel i7-3770
 Ubuntu 16.04.3 LTS
 
 Installation prerequisite on Ubuntu: 
-1) sudo apt-get install gawk clang flex gcc-msp430 iverilog
-2) cd scripts && make install
-3) (Optionally for soundness and security proofs) Spot, see the installation page (https://spot.lrde.epita.fr/install.html)
+		sudo apt-get install gawk clang flex gcc-msp430 iverilog
+		cd scripts && make install
+		(Optionally for soundness and security proofs) Spot, see the installation page (https://spot.lrde.epita.fr/install.html)
 
 ## Building VRASED Software
 To generate the Microcontroller program memory configuration containing VRASED trusted software (SW-Att) and sample application (in application/main.c) code run:
