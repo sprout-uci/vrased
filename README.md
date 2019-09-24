@@ -42,7 +42,8 @@ Environment (processor and OS) used for development and verification:
 Intel i7-3770
 Ubuntu 16.04.3 LTS
 
-Installation prerequisite on Ubuntu: 
+Installation prerequisite on Ubuntu:
+
 		sudo apt-get install gawk clang flex gcc-msp430 iverilog
 		cd scripts && make install
 		(Optionally for soundness and security proofs) Spot, see the installation page (https://spot.lrde.epita.fr/install.html)
