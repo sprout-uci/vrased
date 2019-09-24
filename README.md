@@ -44,7 +44,7 @@ Ubuntu 16.04.3 LTS
 
 Dependencies on Ubuntu:
 
-		sudo apt-get install bison gawk clang flex gcc-msp430 iverilog
+		sudo apt-get install bison pkg-config gawk clang flex gcc-msp430 iverilog
 		cd scripts && make install
 
 To run soundness and security proofs, install Spot: https://spot.lrde.epita.fr/install.html
