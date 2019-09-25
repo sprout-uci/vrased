@@ -7,29 +7,29 @@ malware-free state, and was properly initialized after such process.
 
 ### Directory Structure
 
-.
-├── application
-│   └── simulation
-├── demo
-├── msp_bin
-├── openmsp430
-│   ├── contraints_fpga
-│   ├── fpga
-│   ├── msp_core
-│   ├── msp_memory
-│   ├── msp_periph
-│   └── simulation
-├── scripts
-│   ├── build
-│   └── verif-tools
-├── verification_specs
-│   ├── pure_PoR_proofs
-│   └── vrased_soundness_and_security_proofs
-└── vrased
-    ├── hw-mod
-    │   └── hw-mod-auth
-    └── sw-att
-        └── hacl-c
+    .
+    ├── application
+    │   └── simulation
+    ├── demo
+    ├── msp_bin
+    ├── openmsp430
+    │   ├── contraints_fpga
+    │   ├── fpga
+    │   ├── msp_core
+    │   ├── msp_memory
+    │   ├── msp_periph
+    │   └── simulation
+    ├── scripts
+    │   ├── build
+    │   └── verif-tools
+    ├── verification_specs
+    │   ├── pure_PoR_proofs
+    │   └── vrased_soundness_and_security_proofs
+    └── vrased
+        ├── hw-mod
+        │   └── hw-mod-auth
+        └── sw-att
+            └── hacl-c
 
 ## PURE Verification
 
@@ -48,4 +48,4 @@ For PURE end-to-end soundness and security computer proofs check the readme file
 
 ## VRASED Verification
 
-See README.md in the master branch
+See README.md in the [master branch](https://github.com/sprout-uci/vrased).
