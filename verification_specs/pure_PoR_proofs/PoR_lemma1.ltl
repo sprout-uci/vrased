@@ -1,0 +1,31 @@
+#!/bin/sh
+ltlfilt -c -f '
+(
+
+    G(!pc_in_PoR -> !pc_is_fst_PoR)
+    &&
+    G(pc_in_PoR -> pc_in_cr)
+    &&
+  
+
+
+
+    G(pc_is_fst_PoR && F(pc_is_crmax) -> (!pc_is_crmax U reset))
+    &&
+    G(
+        (!reset && pc_in_cr && X(!pc_in_cr) ) -> ( pc_is_crmax || X(reset) )
+    )
+    &&
+    G(
+        (pc_in_cr && dma_en) -> reset
+    )
+
+
+
+)	->	(
+    G(
+	pc_is_fst_PoR ->   
+        ((pc_in_cr & ! dma_en) W reset)
+    )
+)
+' --equivalent-to 'True'

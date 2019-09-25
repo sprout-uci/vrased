@@ -47,6 +47,9 @@ parameter SMEM_SIZE = 16'h4000;
 //
 parameter KMEM_BASE = 16'h6A00;
 parameter KMEM_SIZE = 16'h001F;
+//
+parameter FST_POR_ADDR = 16'ha028; //SMEM_BASE + 16'hC00;
+parameter LST_POR_ADDR = 16'ha048; // SMEM_BASE + 16'hD00;
 
 /////////////////////////////////////////////////////
 
@@ -139,7 +142,22 @@ dma_X_stack #(
     .reset      (dma_X_stack_reset) 
 );
 
-assign reset = X_stack_reset | AC_reset | dma_AC_reset | dma_detect_reset | dma_X_stack_reset | atomicity_reset;
+wire    proof_reset_reset;
+proof_reset
+#(
+    .SMEM_BASE  (SMEM_BASE),
+    .SMEM_SIZE  (SMEM_SIZE),
+    .FST_POR_ADDR    (FST_POR_ADDR),
+    .LST_POR_ADDR    (LST_POR_ADDR),
+    .RESET_HANDLER  (RESET_HANDLER)
+) proof_reset_0 (
+    .clk        (clk),
+    .pc         (pc),
+//    .data_addr  (data_addr),
+//    .data_en    (data_en),
+    .res      (proof_reset_reset)
+);
 
+assign reset = X_stack_reset | AC_reset | dma_AC_reset | dma_detect_reset | dma_X_stack_reset | atomicity_reset | proof_reset_reset;
 
 endmodule

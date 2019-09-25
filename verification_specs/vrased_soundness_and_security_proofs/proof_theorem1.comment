@@ -1,0 +1,68 @@
+#!/bin/sh
+ltlfilt -c -f '
+(
+ 
+    ############################## Machine Model #################################
+    # If PC points to the last instruction of CR, it is inside CR
+    G(pc_is_crmax -> pc_in_cr)
+    &&
+    # If PC points to the first instruction of CR, it is inside CR
+    G(pc_is_crmin -> pc_in_cr)
+    &&
+    # PC cannot point to both the first and last instructions of CR at the same time
+    G( !(pc_is_crmin && pc_is_crmax) )
+    &&
+    # Execution model (Definition 5.1) for memory change inside AR
+    G( (AR_is_m && X(!AR_is_m)) -> ((daddr_in_AR && w_en) || (dma_addr_in_AR && dma_en)) )
+    &&
+    # AR, XS and MR are disjoint memory regions
+    G( daddr_in_AR -> !daddr_in_XS )
+    &&
+    G( daddr_in_AR -> !daddr_in_MR )
+    &&   
+    # Attestation key is in ROM (never changes)
+    G(KR_is_katt)
+    &&
+    # SW-Att is in ROM (never changes)
+    G(CR_is_sw_att)
+    &&
+    ###########################################################################
+
+
+
+
+    # LTL 3
+    G(
+        ( !reset && pc_in_cr && X(!pc_in_cr) ) -> ( pc_is_crmax || X(reset) )
+    )
+    &&
+    # LTL 6
+    G(
+        ( pc_in_cr && w_en && !(daddr_in_XS) && !(daddr_in_MR) ) -> reset
+    )
+    &&
+    # LTL 9
+    G(
+        (pc_in_cr && dma_en) -> reset
+    )
+    &&
+
+
+
+
+
+    # SW-ATT functional correctness (Definition 3)
+    G(
+        ( pc_is_crmin && MR_is_n && ((AR_is_m && !reset && KR_is_katt && CR_is_sw_att) U pc_is_crmax) ) -> F(pc_is_crmax && hmac)
+    )
+
+
+
+
+)	->	(
+    # Theorem 1
+    G(
+        ( AR_is_m && (!reset U pc_is_crmax) && pc_is_crmin && MR_is_n) -> F(pc_is_crmax && hmac)
+    )
+)
+' --equivalent-to 'True'

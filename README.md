@@ -15,26 +15,39 @@ For more details please check VRASED's paper available at: https://arxiv.org/abs
 
     vrased
     ├── application
-    │   └── simulation
+    │   └── simulation
     ├── demo
     ├── msp_bin
     ├── openmsp430
-    │   ├── contraints_fpga
-    │   ├── fpga
-    │   ├── msp_core
-    │   ├── msp_memory
-    │   ├── msp_periph
-    │   └── simulation
+    │   ├── contraints_fpga
+    │   ├── fpga
+    │   ├── msp_core
+    │   ├── msp_memory
+    │   ├── msp_periph
+    │   └── simulation
     ├── scripts
-    │   ├── build
-    │   └── verif-tools
+    │   ├── build
+    │   └── verif-tools
     ├── verification_specs
-    │   └── soundness_and_security_proofs
+    │   └── soundness_and_security_proofs
     └── vrased
         ├── hw-mod
-        │   └── hw-mod-auth
+        │   └── hw-mod-auth
         └── sw-att
             └── hacl-c
+
+## Dependencies
+
+Environment (processor and OS) used for development and verification:
+Intel i7-3770
+Ubuntu 16.04.3 LTS
+
+Dependencies on Ubuntu:
+
+		sudo apt-get install bison pkg-config gawk clang flex gcc-msp430 iverilog
+		cd scripts && make install
+
+To run soundness and security proofs, install Spot: https://spot.lrde.epita.fr/install.html
 
 ## Building VRASED Software
 To generate the Microcontroller program memory configuration containing VRASED trusted software (SW-Att) and sample application (in application/main.c) code run:

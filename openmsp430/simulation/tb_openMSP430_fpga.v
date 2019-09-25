@@ -67,7 +67,7 @@ reg               BTN1;
 reg               BTN0;
 
 // LEDs
-
+wire              LED8;
 wire              LED7;
 wire              LED6;
 wire              LED5;
@@ -94,12 +94,6 @@ wire              SEG_AN3;
 // UART
 reg               UART_RXD;
 wire              UART_TXD;
-
-// JB-C
-wire              JB1;
-wire              JC1;
-wire              JC2;
-wire              JC7;
 
 // Core debug signals
 wire   [8*32-1:0] i_state;
@@ -132,29 +126,14 @@ wire         [7:0] p1_din = dut.p1_din;
 wire         [7:0] p1_dout = dut.p1_dout;
 wire         [7:0] p1_dout_en = dut.p1_dout_en;
 
-//VAPE's EXEC_FLAG
-wire         EXEC_FLAG = dut.exec_flag;
-
-
-
 
 // RESET SIGNAL
 wire         puc_rst = dut.puc_rst;
 wire         reset_pin_n = dut.reset_pin_n;
 
-//VAPE
-wire       v_immutability = dut.openMSP430_0.hdmod_0.vape_0.vape_immutability;
-wire       v_atomicity = dut.openMSP430_0.hdmod_0.vape_0.vape_atomicity;
-wire       v_output_protection = dut.openMSP430_0.hdmod_0.vape_0.vape_output_protection;
-wire       v_vape_boundary_protection = dut.openMSP430_0.hdmod_0.vape_0.vape_boundary_protection;
-wire      [2:0] atomicity_state = dut.openMSP430_0.hdmod_0.vape_0.VAPE_atomicity_0.pc_state;
-wire      v_is_fst = dut.openMSP430_0.hdmod_0.vape_0.VAPE_atomicity_0.is_first_rom;
-//mclk
-wire              LED8;
 // CPU registers
 //======================
 
-wire       [15:0] pc    = dut.openMSP430_0.inst_pc;
 wire       [15:0] r0    = dut.openMSP430_0.execution_unit_0.register_file_0.r0;
 wire       [15:0] r1    = dut.openMSP430_0.execution_unit_0.register_file_0.r1;
 wire       [15:0] r2    = dut.openMSP430_0.execution_unit_0.register_file_0.r2;
@@ -171,30 +150,82 @@ wire       [15:0] r12   = dut.openMSP430_0.execution_unit_0.register_file_0.r12;
 wire       [15:0] r13   = dut.openMSP430_0.execution_unit_0.register_file_0.r13;
 wire       [15:0] r14   = dut.openMSP430_0.execution_unit_0.register_file_0.r14;
 wire       [15:0] r15   = dut.openMSP430_0.execution_unit_0.register_file_0.r15;
-wire       [1:0] chal_wen   = dut.VAPE_metadata_0.chal_wen;
-wire       [3:0] chal_addr_reg   = dut.VAPE_metadata_0.chal_addr_reg;
-wire       chal_cen   = dut.VAPE_metadata_0.chal_cen;
-wire       [15:0] chal_dout   = dut.VAPE_metadata_0.chal_dout;
-wire       [7:0] reg_addr   = dut.VAPE_metadata_0.reg_addr;
-wire       [13:0] per_addr   = dut.VAPE_metadata_0.per_addr;
-wire       per_en   = dut.VAPE_metadata_0.per_en;
-wire       [15:0] per_dout   = dut.VAPE_metadata_0.per_dout;
-wire       [15:0] per_din   = dut.VAPE_metadata_0.per_din;
-wire       [15:0] ermin   = dut.VAPE_metadata_0.ermin;
-wire       [15:0] ermax   = dut.VAPE_metadata_0.ermax;
-wire       [15:0] ormin   = dut.VAPE_metadata_0.ormin;
-wire       [15:0] ormax   = dut.VAPE_metadata_0.ormax;
-wire       [15:0] ermin_rd   = dut.VAPE_metadata_0.ermin_rd;
-wire       [15:0] ermax_rd   = dut.VAPE_metadata_0.ermax_rd;
-wire       [15:0] ormin_rd   = dut.VAPE_metadata_0.ormin_rd;
-wire       [15:0] ormax_rd   = dut.VAPE_metadata_0.ormax_rd;
-wire       [15:0] exec_rd   = dut.VAPE_metadata_0.exec_rd;
-wire        exec   = dut.VAPE_metadata_0.exec;
 
 // RAM cells
 //======================
 
 wire       [15:0] srom_cen = dut.openMSP430_0.srom_cen;
+
+wire       [15:0] key200 = dut.openMSP430_0.skey_0.mem[0];
+wire       [15:0] key202 = dut.openMSP430_0.skey_0.mem[1];
+wire       [15:0] key204 = dut.openMSP430_0.skey_0.mem[2];
+wire       [15:0] key206 = dut.openMSP430_0.skey_0.mem[3];
+
+
+wire       [15:0] mem200 = dut.openMSP430_0.srom_0.mem[0];
+wire       [15:0] mem202 = dut.openMSP430_0.srom_0.mem[1];
+wire       [15:0] mem204 = dut.openMSP430_0.srom_0.mem[2];
+wire       [15:0] mem206 = dut.openMSP430_0.srom_0.mem[3];
+wire       [15:0] mem208 = dut.openMSP430_0.srom_0.mem[4];
+wire       [15:0] mem20A = dut.openMSP430_0.srom_0.mem[5];
+wire       [15:0] mem20C = dut.openMSP430_0.srom_0.mem[6];
+wire       [15:0] mem20E = dut.openMSP430_0.srom_0.mem[7];
+wire       [15:0] mem210 = dut.openMSP430_0.srom_0.mem[8];
+wire       [15:0] mem212 = dut.openMSP430_0.srom_0.mem[9];
+wire       [15:0] mem214 = dut.openMSP430_0.srom_0.mem[10];
+wire       [15:0] mem216 = dut.openMSP430_0.srom_0.mem[11];
+wire       [15:0] mem218 = dut.openMSP430_0.srom_0.mem[12];
+wire       [15:0] mem21A = dut.openMSP430_0.srom_0.mem[13];
+wire       [15:0] mem21C = dut.openMSP430_0.srom_0.mem[14];
+wire       [15:0] mem21E = dut.openMSP430_0.srom_0.mem[15];
+wire       [15:0] mem220 = dut.openMSP430_0.srom_0.mem[16];
+wire       [15:0] mem222 = dut.openMSP430_0.srom_0.mem[17];
+wire       [15:0] mem224 = dut.openMSP430_0.srom_0.mem[18];
+wire       [15:0] mem226 = dut.openMSP430_0.srom_0.mem[19];
+wire       [15:0] mem228 = dut.openMSP430_0.srom_0.mem[20];
+wire       [15:0] mem22A = dut.openMSP430_0.srom_0.mem[21];
+wire       [15:0] mem22C = dut.openMSP430_0.srom_0.mem[22];
+wire       [15:0] mem22E = dut.openMSP430_0.srom_0.mem[23];
+wire       [15:0] mem230 = dut.openMSP430_0.srom_0.mem[24];
+wire       [15:0] mem232 = dut.openMSP430_0.srom_0.mem[25];
+wire       [15:0] mem234 = dut.openMSP430_0.srom_0.mem[26];
+wire       [15:0] mem236 = dut.openMSP430_0.srom_0.mem[27];
+wire       [15:0] mem238 = dut.openMSP430_0.srom_0.mem[28];
+wire       [15:0] mem23A = dut.openMSP430_0.srom_0.mem[29];
+wire       [15:0] mem23C = dut.openMSP430_0.srom_0.mem[30];
+wire       [15:0] mem23E = dut.openMSP430_0.srom_0.mem[31];
+wire       [15:0] mem240 = dut.openMSP430_0.srom_0.mem[32];
+wire       [15:0] mem242 = dut.openMSP430_0.srom_0.mem[33];
+wire       [15:0] mem244 = dut.openMSP430_0.srom_0.mem[34];
+wire       [15:0] mem246 = dut.openMSP430_0.srom_0.mem[35];
+wire       [15:0] mem248 = dut.openMSP430_0.srom_0.mem[36];
+wire       [15:0] mem24A = dut.openMSP430_0.srom_0.mem[37];
+wire       [15:0] mem24C = dut.openMSP430_0.srom_0.mem[38];
+wire       [15:0] mem24E = dut.openMSP430_0.srom_0.mem[39];
+wire       [15:0] mem250 = dut.openMSP430_0.srom_0.mem[40];
+wire       [15:0] mem252 = dut.openMSP430_0.srom_0.mem[41];
+wire       [15:0] mem254 = dut.openMSP430_0.srom_0.mem[42];
+wire       [15:0] mem256 = dut.openMSP430_0.srom_0.mem[43];
+wire       [15:0] mem258 = dut.openMSP430_0.srom_0.mem[44];
+wire       [15:0] mem25A = dut.openMSP430_0.srom_0.mem[45];
+wire       [15:0] mem25C = dut.openMSP430_0.srom_0.mem[46];
+wire       [15:0] mem25E = dut.openMSP430_0.srom_0.mem[47];
+wire       [15:0] mem260 = dut.openMSP430_0.srom_0.mem[48];
+wire       [15:0] mem262 = dut.openMSP430_0.srom_0.mem[49];
+wire       [15:0] mem264 = dut.openMSP430_0.srom_0.mem[50];
+wire       [15:0] mem266 = dut.openMSP430_0.srom_0.mem[51];
+wire       [15:0] mem268 = dut.openMSP430_0.srom_0.mem[52];
+wire       [15:0] mem26A = dut.openMSP430_0.srom_0.mem[53];
+wire       [15:0] mem26C = dut.openMSP430_0.srom_0.mem[54];
+wire       [15:0] mem26E = dut.openMSP430_0.srom_0.mem[55];
+wire       [15:0] mem270 = dut.openMSP430_0.srom_0.mem[56];
+wire       [15:0] mem272 = dut.openMSP430_0.srom_0.mem[57];
+wire       [15:0] mem274 = dut.openMSP430_0.srom_0.mem[58];
+wire       [15:0] mem276 = dut.openMSP430_0.srom_0.mem[59];
+wire       [15:0] mem278 = dut.openMSP430_0.srom_0.mem[60];
+wire       [15:0] mem27A = dut.openMSP430_0.srom_0.mem[61];
+wire       [15:0] mem27C = dut.openMSP430_0.srom_0.mem[62];
+wire       [15:0] mem27E = dut.openMSP430_0.srom_0.mem[63];
 // Verilog stimulus
 //`include "stimulus.v"
 
@@ -254,7 +285,7 @@ initial
      BTN2          = 1'b0;  // Push Button Switches
      BTN1          = 1'b0;
      BTN0          = 1'b0;
-     UART_RXD      = 1'b0;  // UART
+    // UART_RXD      = 1'b0;  // UART
   end
 
 //
@@ -282,10 +313,6 @@ openMSP430_fpga dut (
     .BTN2         (BTN2),
     .BTN1         (BTN1),
     .BTN0         (BTN0),
-    
-// RS-232 Port
-    .UART_RXD     (UART_RXD),
-    .UART_TXD     (UART_TXD),  
 
 // LEDs
     .LED8         (LED8),
@@ -297,13 +324,6 @@ openMSP430_fpga dut (
     .LED2         (LED2),
     .LED1         (LED1),
     .LED0         (LED0),
-    
-    
-    // JB-C
-    .JB1          (JB1),
-    .JC1          (JC1),
-    .JC2          (JC2),
-    .JC7          (JC7),
 
 // Four-Sigit, Seven-Segment LED Display
     .SEG_A        (SEG_A),
@@ -363,7 +383,7 @@ initial
 //
 // End of simulation
 //----------------------------------------
-/*
+
 initial // Timeout
   begin
    `ifdef NO_TIMEOUT
@@ -384,7 +404,7 @@ initial // Timeout
        $finish;
    `endif
   end
-*/
+
 initial // Normal end of test
   begin
      @(inst_pc===16'hffff)

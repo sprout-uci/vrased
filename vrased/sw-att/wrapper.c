@@ -2,8 +2,11 @@
 
 #define MAC_ADDR 0x0230
 #define KEY_ADDR 0x6A00
-#define ATTEST_DATA_ADDR 0xE000
-#define ATTEST_SIZE 0x2000
+#define ATTEST_DATA_ADDR 0x4000
+#define ATTEST_SIZE 0x600
+
+#define RESET 0x1
+#define RST_RESULT_ADDR 0xFE00
 
 extern void
 hmac(
@@ -24,25 +27,22 @@ void my_memcpy(uint8_t* dst, uint8_t* src, int size) {
   for(i=0; i<size; i++) dst[i] = src[i];
 }
 
-__attribute__ ((section (".do_mac.call"))) void Hacl_HMAC_SHA2_256_hmac_entry() {
-
-	/*volatile uint32_t count = 0, test =0;
-	while (test < 10) {
-	while (count < 1000000) {
-        	count ++;    
-     	}
-		test++;
-	}*/
+__attribute__ ((section (".do_mac.call"))) void Hacl_HMAC_SHA2_256_hmac_entry(uint8_t operation) {
 
     //Save application stack pointer.
     //Allocate key buffer.
     uint8_t key[64] = {0};
     //Copy the key from KEY_ADDR to the key buffer.
     memcpy(key, (uint8_t*)KEY_ADDR, 64);
-    hmac((uint8_t*) key, (uint8_t*) key, (uint32_t) 64, (uint8_t*) MAC_ADDR, (uint32_t) 32);
-    // Uses the result in the key buffer to compute HMAC.
-    // Stores the result in HMAC ADDR.
-    hmac((uint8_t*) (MAC_ADDR), (uint8_t*) key, (uint32_t) 32, (uint8_t*) ATTEST_DATA_ADDR, (uint32_t) ATTEST_SIZE);
+    if (operation == RESET) {
+        hmac((uint8_t*) RST_RESULT_ADDR, (uint8_t*) key, (uint32_t) 64, (uint8_t*) MAC_ADDR, (uint32_t) 32);
+        return;
+    } else {
+        hmac((uint8_t*) key, (uint8_t*) key, (uint32_t) 64, (uint8_t*) MAC_ADDR, (uint32_t) 32);
+        // Uses the result in the key buffer to compute HMAC.
+        // Stores the result in HMAC ADDR.
+        hmac((uint8_t*) (MAC_ADDR), (uint8_t*) key, (uint32_t) 32, (uint8_t*) ATTEST_DATA_ADDR, (uint32_t) ATTEST_SIZE);
+    }
 
 	//return;
 
@@ -51,7 +51,8 @@ __attribute__ ((section (".do_mac.call"))) void Hacl_HMAC_SHA2_256_hmac_entry() 
     __asm__ volatile("mov    @(r6),     r6" "\n\t");
 
     // postamble
-    __asm__ volatile("add     #70,    r1" "\n\t");
+    __asm__ volatile("add     #64,    r1" "\n\t");
+    __asm__ volatile("pop     r11" "\n\t");
     __asm__ volatile( "br      #__mac_leave" "\n\t");
 }
 
@@ -59,7 +60,7 @@ __attribute__ ((section (".do_mac.leave"))) __attribute__((naked)) void Hacl_HMA
     __asm__ volatile("br   r6" "\n\t");
 }
 
-void VRASED (uint8_t *challenge, uint8_t *response) {
+void VRASED (uint8_t *challenge, uint8_t *response, uint8_t operation) {
     //Copy input challenge to MAC_ADDR:
     my_memcpy ( (uint8_t*)MAC_ADDR, challenge, 32);
 
@@ -72,7 +73,7 @@ void VRASED (uint8_t *challenge, uint8_t *response) {
 
     // Write return address of Hacl_HMAC_SHA2_256_hmac_entry
     // to RAM:
-    __asm__ volatile("mov    #0x000e,   r6" "\n\t");
+    __asm__ volatile("mov    #0x0010,   r6" "\n\t");
     __asm__ volatile("mov    #0x0300,   r5" "\n\t");
     __asm__ volatile("mov    r0,        @(r5)" "\n\t");
     __asm__ volatile("add    r6,        @(r5)" "\n\t");
@@ -84,7 +85,7 @@ void VRASED (uint8_t *challenge, uint8_t *response) {
     __asm__ volatile("mov    #0x1000,     r1" "\n\t");
 
     // Call SW-Att:
-    Hacl_HMAC_SHA2_256_hmac_entry();
+    Hacl_HMAC_SHA2_256_hmac_entry(operation);
 
     // Copy retrieve the original stack pointer value:
     __asm__ volatile("mov    r5,    r1" "\n\t");

@@ -10,6 +10,9 @@
 -- HMAC OUTPUT RESERVED ROM
     HMAC_BASE := 0uh16_0230;
     HMAC_SIZE := 0uh16_0020;
+-- PoR Code
+    PORC_BASE := 0uh16_a028;
+    PORC_SIZE := 0uh16_0020;
 --
     LAST_SMEM_ADDR := SMEM_BASE + SMEM_SIZE - 0uh16_2;
     RESET_HANDLER := 0uh16_0000;
@@ -26,6 +29,8 @@
     dma_access_key := "dma_en" & "dma_addr" >= KMEM_BASE & "dma_addr" < (KMEM_BASE + KMEM_SIZE);
     dma_access_X_stack := "dma_en" & "dma_addr" >= SDATA_BASE & "dma_addr" < (SDATA_BASE + SDATA_SIZE);
 
+    pc_is_fst_PoR := "pc" = PORC_BASE;
+
 -- Premisses specifications---
 
 -- Reset correctness
@@ -37,11 +42,11 @@ LTLSPEC G ((!pc_in_srom & access_key) -> "reset");
 -- Atomicity Rules: (1) cannot leave in the middle of ROM code and (2) cannot jump into the middle of ROM code ---
 LTLSPEC G ( !"reset" & pc_in_srom & !next_pc_in_srom -> "pc" = LAST_SMEM_ADDR | next("reset") );
 LTLSPEC G ( !"reset" & !pc_in_srom & next_pc_in_srom -> next("pc") = SMEM_BASE | next("reset") );
-LTLSPEC G ( "irq" & pc_in_srom -> "reset");
 
 -- Exclusive Access to Secure Stack: (1) Only ROM code can read/write the stack and (2) ROM code cannot write outside the stack ---
 LTLSPEC G ((pc_not_in_srom & ("data_en" | "data_wr") & daddr_in_sdata) -> "reset");
 LTLSPEC G ((pc_in_srom & "data_wr" & daddr_not_in_sdata & daddr_not_in_HMAC) -> "reset");
+LTLSPEC G ( "irq" & pc_in_srom -> "reset");
 
 -- DMA cant access the key
 LTLSPEC G (dma_access_key -> "reset");
@@ -52,7 +57,8 @@ LTLSPEC G (("dma_en" & pc_in_srom) -> "reset");
 -- Disallow any DMA access to the exclusive stack
 LTLSPEC G (dma_access_X_stack -> "reset");
 
---LTLSPEC ("reset" U ("pc" = RESET_HANDLER) | G"reset");
---it s Weak until http://nusmv.fbk.eu/courses/icaps03/icaps03-mct.pdf p31
 -----------------------------
+
+-- PoR
+LTLSPEC G(pc_is_fst_PoR & F("pc" = LAST_SMEM_ADDR) -> (!("pc" = LAST_SMEM_ADDR) U "reset"))
 

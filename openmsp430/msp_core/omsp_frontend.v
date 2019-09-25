@@ -75,8 +75,6 @@ module  omsp_frontend (
     nmi_acc,                           // Non-Maskable interrupt request accepted
     pc,                                // Program counter
     pc_nxt,                            // Next PC value (for CALL & IRQ)
-    irq_detect,                        // VRASED: irq happens or not
-    inst_pc,                           // VRASED: current pc that is currently being executed
 
 // INPUTs
     cpu_en_s,                          // Enable CPU code execution (synchronous)
@@ -130,8 +128,6 @@ output               mclk_wkup;        // Main System Clock wake-up (asynchronou
 output               nmi_acc;          // Non-Maskable interrupt request accepted
 output        [15:0] pc;               // Program counter
 output        [15:0] pc_nxt;           // Next PC value (for CALL & IRQ)
-output               irq_detect;
-output        [15:0] inst_pc;
 
 // INPUTs
 //=========
@@ -245,7 +241,7 @@ reg  [2:0] i_state_nxt;
 
 reg  [1:0] inst_sz;
 wire [1:0] inst_sz_nxt;
-//wire       irq_detect;
+wire       irq_detect;
 wire [2:0] inst_type_nxt;
 wire       is_const;
 reg [15:0] sconst_nxt;
@@ -430,11 +426,6 @@ wire       mclk_pc = mclk;
 always @(posedge mclk_pc or posedge puc_rst)
   if (puc_rst)  pc <= 16'h0000;
   else          pc <= pc_nxt;
-  
-reg  [15:0] inst_pc;
-always @(posedge mclk_pc or posedge puc_rst)
-    if (puc_rst)     inst_pc  <=  16'h0000;
-    else if (decode) inst_pc  <=  pc;
 
 // Check if Program-Memory has been busy in order to retry Program-Memory access
 reg pmem_busy;
@@ -1013,8 +1004,6 @@ always @(posedge mclk_decode or posedge puc_rst)
 `else
   else if (decode) inst_alu <= inst_alu_nxt;
 `endif
-
-
 
 
 endmodule // omsp_frontend
