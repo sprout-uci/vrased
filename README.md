@@ -1,13 +1,10 @@
 # PURE: Using Verified Remote Attestation to Obtain Proofs of Update, Reset and Erasure in Low-End Embedded Systems
-We show how a secure remote attestation architecture can be extended to enable important and
-useful security services for low-end embedded devices. In particular, we extend the formally verified remote attestation architecture, [VRASED](https://github.com/sprout-uci/vrased), to
-implement provably secure software update, erasure, and systemwide resets. When (serially) composed, these features guarantee
-to verifier that a remote prover has been updated to a functional and
-malware-free state, and was properly initialized after such process.
-All changes introduced by our new
-services to VRASED trusted components are also formally verified.
+PURE shows how a secure remote attestation architecture can be extended to enable useful security services for low-end embedded devices.
+In particular, PURE extends [VRASED](https://github.com/sprout-uci/vrased), to implement provably secure software update, erasure, and systemwide resets.
+If serially composed as one monolithic operation, these features guarantee to a verifier that a remote prover has been updated to a functional and malware-free state, and was properly initialized after such process.
+Changes introduced by PURE to VRASED trusted components (available in this branch) are also formally verified.
 
-For more details please check VRASED's paper available at: http://sprout.ics.uci.edu/projects/attestation/papers/pure.pdf
+For more details please check PURE paper available at: http://sprout.ics.uci.edu/projects/attestation/papers/pure.pdf
 
 ### Directory Structure
 
@@ -37,19 +34,20 @@ For more details please check VRASED's paper available at: http://sprout.ics.uci
 
 ## PURE Verification
 
-First we need to install the verification tools:
+To install the verification tools:
 
         cd scripts
         make install
 
-To check HW-Mod against VRASED subproperties using NuSMV run:
+To check HW-Mod against both VRASED and PURE subproperties using NuSMV run:
 
         make verify
 
-For PURE end-to-end soundness and security computer proofs check the readme file in:
+For PURE PoR LTL computer proof check the readme file in:
 
         verification_specs/pure_PoR_proofs/
 
-## Building PURE Software, Running PURE on FPGA and VRASED Verification
+## Building PURE Software and Running PURE on FPGA
 
 See README.md in the [master branch](https://github.com/sprout-uci/vrased).
+Follow the same steps using the source files contained in this branch instead.
