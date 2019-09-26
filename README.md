@@ -9,7 +9,12 @@ VRASED is a formally verified Hardware/Software co-design for remote attestation
 It provides a level of security comparable to HW-based approaches, while relying on SW to minimize additional HW costs.
 VRASED's prototype, contained in this repository, is implemented by modifying the openmsp430 open-hardware platform (https://github.com/olgirard/openmsp430).
 
-For more details please check VRASED's paper available at: https://arxiv.org/abs/1811.00175
+For more details please check VRASED's paper available at: https://www.usenix.org/conference/usenixsecurity19/presentation/de-oliveira-nunes
+
+### See also:
+
+	- [PURE:](https://github.com/sprout-uci/vrased/tree/pure) Extending VRASED to implement provably secure and verified proofs of software update, erasure and systemwide reset in low-end embedded systems.
+
 
 ### VRASED Directory Structure
 
