@@ -1,9 +1,0 @@
-VRASED's TCB = 4496 bytes
-VRASED's non-trusted code = 112 bytes
-VRASED's stack mem usage: 2332
-
-Reset software takes 210385 cycles
-Reset's TCB = 4546 bytes
-Reset's non-trusted code = 120 bytes
-PURE's stack mem usage: 2336
-
