@@ -77,8 +77,6 @@ module  openMSP430 (
     puc_rst,                                 // Main system reset
     smclk,                                   // ASIC ONLY: SMCLK
     smclk_en,                                // FPGA ONLY: SMCLK enable
-// VAPE Output
-    exec_flag,
 
 // INPUTs
     cpu_en,                                  // Enable CPU code execution (asynchronous and non-glitchy)
@@ -104,12 +102,7 @@ module  openMSP430 (
     reset_n,                                 // Reset Pin (low active, asynchronous and non-glitchy)
     scan_enable,                             // ASIC ONLY: Scan enable (active during scan shifting)
     scan_mode,                               // ASIC ONLY: Scan mode
-    wkup,                                     // ASIC ONLY: System Wake-up (asynchronous and non-glitchy)
-//VAPE Inputs
-    ER_min,
-    ER_max,
-    OR_min,
-    OR_max
+    wkup                                     // ASIC ONLY: System Wake-up (asynchronous and non-glitchy)
 );
 
 // PARAMETERs
@@ -148,7 +141,6 @@ output         [1:0] pmem_wen;               // Program Memory write enable (low
 output               puc_rst;                // Main system reset
 output               smclk;                  // ASIC ONLY: SMCLK
 output               smclk_en;               // FPGA ONLY: SMCLK enable
-output               exec_flag;
 
 
 // INPUTs
@@ -177,10 +169,8 @@ input                reset_n;                // Reset Pin (active low, asynchron
 input                scan_enable;            // ASIC ONLY: Scan enable (active during scan shifting)
 input                scan_mode;              // ASIC ONLY: Scan mode
 input                wkup;                   // ASIC ONLY: System Wake-up (asynchronous and non-glitchy)
-input        [15:0] ER_min;
-input        [15:0] ER_max;
-input        [15:0] OR_min;
-input        [15:0] OR_max;
+
+
 
 //=============================================================================
 // 1)  INTERNAL WIRES/REGISTERS/PARAMETERS DECLARATION
@@ -281,10 +271,6 @@ wire [`SKEY_MSB:0] skey_addr;
 wire               skey_cen;
 wire        [15:0] skey_dout;
 
-// more wires -- for precise currently executed pc and irq detection
-wire          [15:0] inst_pc;
-wire                 irq_detect;
-
 //=============================================================================
 // 2)  GLOBAL CLOCK & RESET MANAGEMENT
 //=============================================================================
@@ -373,8 +359,6 @@ omsp_frontend frontend_0 (
     .nmi_acc           (nmi_acc),            // Non-Maskable interrupt request accepted
     .pc                (pc),                 // Program counter
     .pc_nxt            (pc_nxt),             // Next PC value (for CALL & IRQ)
-    .inst_pc           (inst_pc),
-    .irq_detect        (irq_detect),
 
 // INPUTs
     .cpu_en_s          (cpu_en_s),           // Enable CPU code execution (synchronous)
@@ -565,9 +549,11 @@ omsp_mem_backbone mem_backbone_0 (
     .scan_enable       (scan_enable)         // Scan enable (active during scan shifting)
 );
 
+
+
 vrased vrased_0 (
     .clk        (dma_mclk),
-    .pc         (inst_pc),
+    .pc         (pc),
     .data_en    (eu_mb_en),
     .data_wr    (&eu_mb_wr),
     .data_addr  (eu_mab),
@@ -575,11 +561,8 @@ vrased vrased_0 (
     .dma_addr   ({1'b0, dma_addr[15:1]}),
     .dma_en     (dma_en),
 
-    .irq        (irq_detect),
-
     .reset      (vrased_reset)        // Reset due to invalid SROM access
 );
-
 
 
 //=============================================================================
