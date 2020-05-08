@@ -26,14 +26,6 @@ void my_memcpy(uint8_t* dst, uint8_t* src, int size) {
 
 __attribute__ ((section (".do_mac.call"))) void Hacl_HMAC_SHA2_256_hmac_entry() {
 
-	/*volatile uint32_t count = 0, test =0;
-	while (test < 10) {
-	while (count < 1000000) {
-        	count ++;    
-     	}
-		test++;
-	}*/
-
     //Save application stack pointer.
     //Allocate key buffer.
     uint8_t key[64] = {0};
@@ -81,7 +73,7 @@ void VRASED (uint8_t *challenge, uint8_t *response) {
     __asm__ volatile("mov    r1,    r5" "\n\t");
 
     // Set the stack pointer to the base of the exclusive stack:
-    __asm__ volatile("mov    #0x1000,     r1" "\n\t");
+    __asm__ volatile("mov    #0x1002,     r1" "\n\t");
 
     // Call SW-Att:
     Hacl_HMAC_SHA2_256_hmac_entry();
