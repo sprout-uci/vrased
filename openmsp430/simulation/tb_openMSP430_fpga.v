@@ -132,8 +132,6 @@ wire         [7:0] p1_din = dut.p1_din;
 wire         [7:0] p1_dout = dut.p1_dout;
 wire         [7:0] p1_dout_en = dut.p1_dout_en;
 
-//VAPE's EXEC_FLAG
-wire         EXEC_FLAG = dut.exec_flag;
 
 
 
@@ -143,12 +141,6 @@ wire         puc_rst = dut.puc_rst;
 wire         reset_pin_n = dut.reset_pin_n;
 
 //VAPE
-wire       v_immutability = dut.openMSP430_0.hdmod_0.vape_0.vape_immutability;
-wire       v_atomicity = dut.openMSP430_0.hdmod_0.vape_0.vape_atomicity;
-wire       v_output_protection = dut.openMSP430_0.hdmod_0.vape_0.vape_output_protection;
-wire       v_vape_boundary_protection = dut.openMSP430_0.hdmod_0.vape_0.vape_boundary_protection;
-wire      [2:0] atomicity_state = dut.openMSP430_0.hdmod_0.vape_0.VAPE_atomicity_0.pc_state;
-wire      v_is_fst = dut.openMSP430_0.hdmod_0.vape_0.VAPE_atomicity_0.is_first_rom;
 //mclk
 wire              LED8;
 // CPU registers
@@ -171,25 +163,24 @@ wire       [15:0] r12   = dut.openMSP430_0.execution_unit_0.register_file_0.r12;
 wire       [15:0] r13   = dut.openMSP430_0.execution_unit_0.register_file_0.r13;
 wire       [15:0] r14   = dut.openMSP430_0.execution_unit_0.register_file_0.r14;
 wire       [15:0] r15   = dut.openMSP430_0.execution_unit_0.register_file_0.r15;
-wire       [1:0] chal_wen   = dut.VAPE_metadata_0.chal_wen;
-wire       [3:0] chal_addr_reg   = dut.VAPE_metadata_0.chal_addr_reg;
-wire       chal_cen   = dut.VAPE_metadata_0.chal_cen;
-wire       [15:0] chal_dout   = dut.VAPE_metadata_0.chal_dout;
-wire       [7:0] reg_addr   = dut.VAPE_metadata_0.reg_addr;
-wire       [13:0] per_addr   = dut.VAPE_metadata_0.per_addr;
-wire       per_en   = dut.VAPE_metadata_0.per_en;
-wire       [15:0] per_dout   = dut.VAPE_metadata_0.per_dout;
-wire       [15:0] per_din   = dut.VAPE_metadata_0.per_din;
-wire       [15:0] ermin   = dut.VAPE_metadata_0.ermin;
-wire       [15:0] ermax   = dut.VAPE_metadata_0.ermax;
-wire       [15:0] ormin   = dut.VAPE_metadata_0.ormin;
-wire       [15:0] ormax   = dut.VAPE_metadata_0.ormax;
-wire       [15:0] ermin_rd   = dut.VAPE_metadata_0.ermin_rd;
-wire       [15:0] ermax_rd   = dut.VAPE_metadata_0.ermax_rd;
-wire       [15:0] ormin_rd   = dut.VAPE_metadata_0.ormin_rd;
-wire       [15:0] ormax_rd   = dut.VAPE_metadata_0.ormax_rd;
-wire       [15:0] exec_rd   = dut.VAPE_metadata_0.exec_rd;
-wire        exec   = dut.VAPE_metadata_0.exec;
+
+//VRASED values
+wire        vrased_clk  = dut.openMSP430_0.vrased_0.clk;
+wire        [15:0] vrased_pc  = dut.openMSP430_0.vrased_0.pc;
+
+wire        vrased_r_en  = dut.openMSP430_0.vrased_0.data_en;
+wire        vrased_w_en  = dut.openMSP430_0.vrased_0.data_wr;
+wire        [15:0] vrased_daddr  = dut.openMSP430_0.vrased_0.data_addr;
+
+wire        vrased_dma_en  = dut.openMSP430_0.vrased_0.dma_en;
+wire        vrased_dma_addr  = dut.openMSP430_0.vrased_0.dma_addr;
+
+wire        vrased_reset  = dut.openMSP430_0.vrased_0.reset;
+
+
+
+
+
 
 // RAM cells
 //======================
@@ -300,10 +291,10 @@ openMSP430_fpga dut (
     
     
     // JB-C
-    .JB1          (JB1),
-    .JC1          (JC1),
-    .JC2          (JC2),
-    .JC7          (JC7),
+//    .JB1          (JB1),
+//    .JC1          (JC1),
+//    .JC2          (JC2),
+//    .JC7          (JC7),
 
 // Four-Sigit, Seven-Segment LED Display
     .SEG_A        (SEG_A),
