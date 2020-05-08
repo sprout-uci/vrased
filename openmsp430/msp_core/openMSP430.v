@@ -271,6 +271,9 @@ wire [`SKEY_MSB:0] skey_addr;
 wire               skey_cen;
 wire        [15:0] skey_dout;
 
+wire          [15:0] inst_pc;
+wire                 irq_detect;
+
 //=============================================================================
 // 2)  GLOBAL CLOCK & RESET MANAGEMENT
 //=============================================================================
@@ -359,6 +362,9 @@ omsp_frontend frontend_0 (
     .nmi_acc           (nmi_acc),            // Non-Maskable interrupt request accepted
     .pc                (pc),                 // Program counter
     .pc_nxt            (pc_nxt),             // Next PC value (for CALL & IRQ)
+    .inst_pc           (inst_pc),
+    .irq_detect        (irq_detect),
+
 
 // INPUTs
     .cpu_en_s          (cpu_en_s),           // Enable CPU code execution (synchronous)
@@ -553,15 +559,18 @@ omsp_mem_backbone mem_backbone_0 (
 
 vrased vrased_0 (
     .clk        (dma_mclk),
-    .pc         (pc),
+
+    .pc         (inst_pc),
     .data_en    (eu_mb_en),
-    .data_wr    (&eu_mb_wr),
+    .data_wr    (|eu_mb_wr),
     .data_addr  (eu_mab),
 
     .dma_addr   ({1'b0, dma_addr[15:1]}),
     .dma_en     (dma_en),
 
-    .reset      (vrased_reset)        // Reset due to invalid SROM access
+	.irq		(irq_detect),
+
+    .reset      (vrased_reset)
 );
 
 
