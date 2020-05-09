@@ -25,6 +25,7 @@ module vrased (
     
     reset
 );
+
 input           clk;
 input   [15:0]  pc;
 input           data_en;

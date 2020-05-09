@@ -3,10 +3,10 @@
 #define MAC_ADDR 0x0230
 #define KEY_ADDR 0x6A00
 #define ATTEST_DATA_ADDR 0x4000
-#define ATTEST_SIZE 0x600
+#define ATTEST_SIZE 0x2000
 
 #define RESET 0x1
-#define RST_RESULT_ADDR 0xFE00
+#define RST_RESULT_ADDR 0x0230
 
 extern void
 hmac(
@@ -82,7 +82,7 @@ void VRASED (uint8_t *challenge, uint8_t *response, uint8_t operation) {
     __asm__ volatile("mov    r1,    r5" "\n\t");
 
     // Set the stack pointer to the base of the exclusive stack:
-    __asm__ volatile("mov    #0x1000,     r1" "\n\t");
+    __asm__ volatile("mov    #0x1002,     r1" "\n\t");
 
     // Call SW-Att:
     Hacl_HMAC_SHA2_256_hmac_entry(operation);

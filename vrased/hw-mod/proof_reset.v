@@ -14,11 +14,12 @@ input   [15:0]  pc;
 output          res;
 
 // MACROS ///////////////////////////////////////////
-parameter SMEM_BASE = 16'hE000;
-parameter SMEM_SIZE = 16'h1000;
-parameter FST_POR_ADDR = 16'h1234;
-parameter LST_POR_ADDR = 16'h123F;
+parameter SMEM_BASE = 16'hA000;
+parameter SMEM_SIZE = 16'h4000;
+parameter FST_POR_ADDR = 16'ha028; //SMEM_BASE + 16'hC00;
+parameter LST_POR_ADDR = 16'ha048; // SMEM_BASE + 16'hD00;
 parameter RESET_HANDLER = 16'hfffe;
+
 parameter RUN  = 2'b00, KILL = 2'b01, PoR = 2'b10;
 /////////////////////////////////////////////////////
 
