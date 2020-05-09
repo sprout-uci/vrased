@@ -3,10 +3,7 @@
 #define WDTCTL_               0x0120    /* Watchdog Timer Control */
 //#define WDTHOLD             (0x0080)
 //#define WDTPW               (0x5A00)
-#define RST_RESULT_ADDR 0xFE00
-#define COPY_ADDR 0x5000
-#define ATTEST_DATA_ADDR 0x4000
-#define ATTEST_SIZE 0x200
+
 
 extern void VRASED (uint8_t *challenge, uint8_t *response, uint8_t operation); 
 
@@ -80,43 +77,38 @@ int main() {
   uint32_t* wdt = (uint32_t*)(WDTCTL_);
   *wdt = WDTPW | WDTHOLD;
 
-    init_uart();
+	init_uart();
     init_gpio();
 
 
-  /*my_memcpy((uint8_t*) ATTEST_DATA_ADDR, (uint8_t*) COPY_ADDR, ATTEST_SIZE);
-  my_memset((uint8_t*) ATTEST_DATA_ADDR, ATTEST_SIZE, 0);
-
-  //VRASED(challenge, response, 0);
-  __asm__ volatile("br #0xfffe" "\n\t");
-  return 0;*/
-
-  uint32_t count = 0; 
+  P3OUT  =  0x01;
+  volatile uint32_t count = 0; 
   volatile uint8_t buffer = 0;
-
-    eint();
         
   while (1) {
-     while (count < 5000000) {
+    // if btnR is pressed run attestation 
+    if (P3OUT % 10 == 0) {
+        buffer = P3OUT;
+    	if (P3OUT % 50 == 0) {
+			// proof of reset
+	        P3OUT = 0xFF;
+			VRASED(challenge, response, 1);
+		} else {
+			//regular attestation
+	        P3OUT = 0xFF;
+			VRASED(challenge, response, 0);
+		}
+
+        P3OUT = buffer;
+    }
+     while (count < 3000000) {
         count ++;    
      }
      count = 0;
-	P3OUT++;
-	tty_putc(P3OUT);
-     /*P3OUT++;
-    // if btnR is pressed run attestation 
-    if (P3OUT % 15 == 0) {
-        buffer = P3OUT;
-        P3OUT = 0xFF;
-
-        VRASED(challenge, response, 0);
-        count = 0;
-
-        P3OUT = buffer;
-    }*/
+     P3OUT++;
 
   }
- 
+
   __asm__ volatile("br #0xffff" "\n\t");
   return 0;
 }
