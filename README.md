@@ -13,7 +13,9 @@ For more details please check VRASED's paper available at: https://www.usenix.or
 
 ### See also:
 
-- [PURE:](https://github.com/sprout-uci/vrased/tree/pure) Extending VRASED to implement provably secure and verified proofs of software update, erasure and systemwide reset in low-end embedded systems.
+- [APEX:](https://github.com/sprout-uci/vrased/tree/pure) Verified architecture for proofs of remote software execution on low-end embedded systems.
+
+- [PURE:](https://github.com/sprout-uci/vrased/tree/pure) Extension of VRASED to implement provably secure and verified proofs of software update, erasure and systemwide reset on low-end embedded systems.
 
 
 ### VRASED Directory Structure
