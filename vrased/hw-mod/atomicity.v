@@ -49,10 +49,6 @@ wire is_in_rom = is_mid_rom | is_first_rom | is_last_rom;
 wire is_outside_rom = pc < SMEM_BASE | pc > LAST_SMEM_ADDR;
 always @(posedge clk)
 begin
-    if(irq)
-        pc_state <= kill;
-    else begin
-    //if(pc_en) begin
     case (pc_state)
         notRC:
             if (is_outside_rom)
@@ -108,14 +104,12 @@ begin
                 pc_state <= pc_state;
                 
     endcase
-    end
-    //else pc_state <= pc_state;
 end
 
 ////////////// OUTPUT LOGIC //////////////////////////////////////
 always @(posedge clk)
 begin
-    if ( irq || (
+    if ( (
         (pc_state == fstRC && !is_mid_rom && !is_first_rom) ||
         (pc_state == lastRC && !is_outside_rom && !is_last_rom) ||
         (pc_state == midRC && !is_last_rom && !is_mid_rom) ||

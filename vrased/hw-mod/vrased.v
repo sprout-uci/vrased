@@ -123,6 +123,7 @@ dma_detect #(
     .pc         (pc),
     .dma_addr   (dma_addr),
     .dma_en     (dma_en),
+	.irq		(irq),
     .reset      (dma_detect_reset) 
 );
 
