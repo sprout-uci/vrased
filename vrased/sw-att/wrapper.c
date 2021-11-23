@@ -3,7 +3,7 @@
 #define MAC_ADDR 0x0230
 #define KEY_ADDR 0x6A00
 #define ATTEST_DATA_ADDR 0xE000
-#define ATTEST_SIZE 0x2000
+#define ATTEST_SIZE 0x20
 
 extern void
 hmac(
@@ -91,7 +91,3 @@ void VRASED (uint8_t *challenge, uint8_t *response) {
     // Return the HMAC value to the application:
     my_memcpy(response, (uint8_t*)MAC_ADDR, 32);
 }
-
-
-
-

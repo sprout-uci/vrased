@@ -22,9 +22,9 @@
 # Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #
 #------------------------------------------------------------------------------
-# 
+#
 # File Name: rtlsim.sh
-# 
+#
 # Author(s):
 #             - Olivier Girard,    olgirard@gmail.com
 #             - Mihai M.,	   mmihai@delajii.net
@@ -73,15 +73,15 @@ fi
 if [ "${MYVLOG:-iverilog}" = iverilog ]; then
 
     rm -rf simv
-    
+
     NODUMP=${OMSP_NODUMP-0}
     if [ $NODUMP -eq 1 ]
       then
         iverilog -o simv -c $3 -D NODUMP -D SEED=0 -D NO_DMA_VERIF
       else
-        iverilog -o simv -c $3 -D NODUMP -D SEED=0 -D NO_DMA_VERIF
+        iverilog -o simv -c $3 -D SEED=0 -D NO_DMA_VERIF
     fi
-    
+
     ./simv
 else
 
@@ -92,8 +92,8 @@ else
        vargs=""
     fi
 
-   case $MYVLOG in 
-    cver* ) 
+   case $MYVLOG in
+    cver* )
        vargs="$vargs +define+VXL +define+CVER" ;;
     verilog* )
        vargs="$vargs +define+VXL" ;;
@@ -109,7 +109,7 @@ else
        vlib work
        exec vlog +acc=prn -f $3 $vargs -R -c -do "run -all"
    esac
-   
+
    echo "Running: $MYVLOG -f $3 $vargs"
    exec $MYVLOG -f $3 $vargs
 fi
