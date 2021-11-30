@@ -1,5 +1,6 @@
 //`include "../verilog/omsp430/openMSP430_defines.v"
 `define NO_TIMEOUT
+
 reg [32:0] total_cycles = 0;
 initial
    begin
@@ -19,7 +20,6 @@ initial
       @(r0==16'hffff);
       $display("Total time %d cycles", $signed(num_cycles));
       $display("Final state:\n");
-	$finish;
 
       $display("pc = %h, r1 = %h, r2 = %h, r3 = %h, r4 = %h, r5 = %h, srom_dout = %h, srom_cen = %h, pmem_cen = %h\n", r0, r1, r2, r3, r4, r5, dut.srom_dout, dut.srom_cen, dut.pmem_cen);
 

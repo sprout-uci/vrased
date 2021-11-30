@@ -5,19 +5,17 @@ on:
 
 jobs:
   bench:
-    name: VRASED
+    name: VRASED - ${{ matrix.target }}
     runs-on: ubuntu-20.04
     strategy:
       fail-fast: false
       matrix:
-        target: ['make run', './attack-keysize.sh']
+        target: ['make run', './attack-keysize.sh', './attack-dma-ac.sh']
 
     steps:
       - name: Check out repository
         uses: actions/checkout@v2
       - name: Install dependencies
-        run: sudo apt-get install bison pkg-config gawk clang flex gcc-msp430 iverilog -y
-      - name: Create binary
-        run: cd scripts && make mem
+        run: sudo apt-get install bison pkg-config gawk clang flex gcc-msp430 iverilog expect-dev -y
       - name: Run test bench
-        run: cd scripts && make run
+        run: cd scripts && ${{ matrix.target }}

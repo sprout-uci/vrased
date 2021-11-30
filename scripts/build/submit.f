@@ -87,6 +87,7 @@
 +incdir+../openmsp430/msp_periph/
 ../openmsp430/msp_periph/omsp_gpio.v
 ../openmsp430/msp_periph/omsp_timerA.v
+../openmsp430/msp_periph/attacker.v
 //../../../rtl/verilog/periph/omsp_uart.v
 ../openmsp430/msp_periph/template_periph_8b.v
 ../openmsp430/msp_periph/template_periph_16b.v

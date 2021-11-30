@@ -42,15 +42,15 @@ ${NAME}.o: main.c
 rom_wrapper.o:
 	${CC} ${CFLAGS} "-D__ATTACK=${ATTACK}" -c -o $@ wrapper.c #./hacl_mac.lib
 
-hacl_mac.lib: 
+hacl_mac.lib:
 	cd hacl-c ; \
 	${CC} ${CFLAGS} -c -o hacl.lib.o Hacl_HMAC_SHA2_256.c ; \
 	msp430-objcopy --rename-section .text=.do_mac.lib hacl.lib.o ; \
 	ar crs ../$@ hacl.lib.o ; \
-	rm hacl.lib.o 
+	rm hacl.lib.o
 
 srom_libc.a:
-	mkdir -p tmp_srom_lib 
+	mkdir -p tmp_srom_lib
 	cd tmp_srom_lib; \
         ar x /usr/msp430/lib/libc.a ; \
         for i in mem*.o ; do  msp430-objcopy --rename-section .text=.srom.libc $$i ; done ; \
@@ -61,4 +61,3 @@ clean:
 	rm -f ${NAME} ${NAME}.a43 ${NAME}.lst ${NAME}.elf ${NAME}.size *.o srom_libc.a hacl_mac.lib rom_wrapper.o pmem.def
 
 #project dependencies
-

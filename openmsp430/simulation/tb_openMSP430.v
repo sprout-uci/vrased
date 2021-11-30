@@ -72,11 +72,11 @@ wire               per_en;
 wire        [15:0] dma_dout;
 wire               dma_ready;
 wire               dma_resp;
-reg         [15:1] dma_addr;
-reg         [15:0] dma_din;
-reg                dma_en;
+wire         [15:1] dma_addr;
+wire         [15:0] dma_din;
+wire                dma_en;
 reg                dma_priority;
-reg          [1:0] dma_we;
+wire          [1:0] dma_we;
 reg                dma_wkup;
 
 // Digital I/O
@@ -107,6 +107,8 @@ reg          [7:0] p3_din;
 reg          [7:0] p4_din;
 reg          [7:0] p5_din;
 reg          [7:0] p6_din;
+
+wire        [15:0] per_dout_attacker;
 
 // Peripheral templates
 wire        [15:0] per_dout_temp_8b;
@@ -220,7 +222,8 @@ reg                stimulus_done;
 `include "dbg_i2c_tasks.v"
 
 // Direct Memory Access interface tasks
-`include "dma_tasks.v"
+// `include "dma_tasks.v"
+reg        dma_tfx_cancel;
 
 // Verilog stimulus
 `include "stimulus.v"
@@ -288,11 +291,11 @@ initial
      irq                     = {`IRQ_NR-2{1'b0}};
      nmi                     = 1'b0;
      wkup                    = 14'h0000;
-     dma_addr                = 15'h0000;
-     dma_din                 = 16'h0000;
-     dma_en                  = 1'b0;
+    //  dma_addr                = 15'h0000;
+    //  dma_din                 = 16'h0000;
+    //  dma_en                  = 1'b0;
      dma_priority            = 1'b0;
-     dma_we                  = 2'b00;
+    //  dma_we                  = 2'b00;
      dma_wkup                = 1'b0;
      dma_tfx_cancel          = 1'b0;
      cpu_en                  = 1'b1;
@@ -528,6 +531,23 @@ omsp_timerA timerA_0 (
     .taclk             (taclk)                 // TACLK external timer clock (SLOW)
 );
 
+attacker attacker(
+    .per_dout (per_dout_attacker),
+    .dma_addr (dma_addr),
+    .dma_en   (dma_en),
+    .dma_din  (dma_din),
+    .dma_we   (dma_we),
+
+    .mclk     (mclk),
+    .per_addr (per_addr),
+    .per_din  (per_din),
+    .per_en   (per_en),
+    .per_we   (per_we),
+    .puc_rst  (puc_rst),
+    .dma_ready(dma_ready),
+    .dma_dout (dma_dout)
+);
+
 //
 // Peripheral templates
 //----------------------------------
@@ -570,6 +590,7 @@ template_periph_16b #(.BASE_ADDR((15'd`PER_SIZE-15'h0070) & 15'h7ff8)) template_
 
 assign per_dout = per_dout_dio       |
                   per_dout_timerA    |
+                  per_dout_attacker  |
                   per_dout_temp_8b   |
                   per_dout_temp_16b;
 
@@ -726,12 +747,13 @@ initial // Normal end of test
      wait(inst_pc=='hffff);
 
      $display(" ===============================================");
-     if ((dma_rd_error!=0) || (dma_wr_error!=0))
-       begin
-          $display("|               SIMULATION FAILED               |");
-          $display("|           (some DMA transfer failed)          |");
-       end
-     else if (error!=0)
+     //if ((dma_rd_error!=0) || (dma_wr_error!=0))
+     //  begin
+     //     $display("|               SIMULATION FAILED               |");
+     //     $display("|           (some DMA transfer failed)          |");
+     //  end
+     //else
+     if (error!=0)
        begin
           $display("|               SIMULATION FAILED               |");
           $display("|     (some verilog stimulus checks failed)     |");
@@ -766,16 +788,16 @@ initial // Normal end of test
 
    task tb_extra_report;
       begin
-         $display("DMA REPORT: Total Accesses: %-d Total RD: %-d Total WR: %-d", dma_cnt_rd+dma_cnt_wr,     dma_cnt_rd,   dma_cnt_wr);
-         $display("            Total Errors:   %-d Error RD: %-d Error WR: %-d", dma_rd_error+dma_wr_error, dma_rd_error, dma_wr_error);
-         if (!((`PMEM_SIZE>=4092) && (`DMEM_SIZE>=1024)))
-           begin
-	      $display("");
-              $display("Note: DMA if verification disabled (PMEM must be 4kB or bigger, DMEM must be 1kB or bigger)");
-           end
-         $display("");
-         $display("SIMULATION SEED: %d", `SEED);
-         $display("");
+         //$display("DMA REPORT: Total Accesses: %-d Total RD: %-d Total WR: %-d", dma_cnt_rd+dma_cnt_wr,     dma_cnt_rd,   dma_cnt_wr);
+         //$display("            Total Errors:   %-d Error RD: %-d Error WR: %-d", dma_rd_error+dma_wr_error, dma_rd_error, dma_wr_error);
+         //if (!((`PMEM_SIZE>=4092) && (`DMEM_SIZE>=1024)))
+         //  begin
+	 //     $display("");
+         //     $display("Note: DMA if verification disabled (PMEM must be 4kB or bigger, DMEM must be 1kB or bigger)");
+         //  end
+         //$display("");
+         //$display("SIMULATION SEED: %d", `SEED);
+         //$display("");
       end
    endtask
 

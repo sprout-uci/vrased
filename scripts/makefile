@@ -1,7 +1,7 @@
 default :
 
 install-clean :
-	rm -rf ./verif-tools/verilog2smv-1.1.2 ./verif-tools/verilog2smv.sh	
+	rm -rf ./verif-tools/verilog2smv-1.1.2 ./verif-tools/verilog2smv.sh
 
 install :
 	cd verif-tools ; \
