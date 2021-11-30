@@ -16,13 +16,6 @@ initial
       @(r0==16'he000);
       $display("In Flash");
 
-      @(r0==16'ha000);
-      num_cycles = 0;
-
-      @(r0==16'hdffe);
-      total_cycles = num_cycles;
-      $display("Attestation take %d cycles", num_cycles);
-
       @(r0==16'hffff);
       $display("Total time %d cycles", $signed(num_cycles));
       $display("Final state:\n");
