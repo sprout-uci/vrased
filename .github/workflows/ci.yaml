@@ -10,7 +10,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        target: ['make run', './attack-keysize.sh', './attack-dma-ac.sh']
+        target: ['make run', './attack-keysize.sh', './attack-dma-ac.sh', './attack-stack.sh']
 
     steps:
       - name: Check out repository

@@ -48,11 +48,10 @@ parameter       [14:0] BASE_ADDR   = 15'h0070;
 parameter              DEC_WD      =  3;
 
 // Register addresses offset
-parameter [DEC_WD-1:0] ATT_STEAL_KEY   =  'h0,
-//ATT_PER_CNT     =  'h0,
-                       ATT_CYCLE_LEN   =  'h2,
-                       ATT_DMA_MEASURE =  'h4,
-                       ATT_DMA_ACTIVE  =  'h6;
+parameter [DEC_WD-1:0] ATT_STEAL_KEY       =  'h0,
+                       ATT_PERSISTENT_FLAG =  'h2,
+                       ATT_DMA_MEASURE     =  'h4,
+                       ATT_DMA_ACTIVE      =  'h6;
 
 
 // Register one-hot decoder utilities
@@ -60,10 +59,10 @@ parameter              DEC_SZ      =  (1 << DEC_WD);
 parameter [DEC_SZ-1:0] BASE_REG    =  {{DEC_SZ-1{1'b0}}, 1'b1};
 
 // Register one-hot decoder
-parameter [DEC_SZ-1:0] ATT_STEAL_KEY_D   = (BASE_REG << ATT_STEAL_KEY),
-                       ATT_CYCLE_LEN_D   = (BASE_REG << ATT_CYCLE_LEN),
-                       ATT_DMA_MEASURE_D = (BASE_REG << ATT_DMA_MEASURE),
-                       ATT_DMA_ACTIVE_D  = (BASE_REG << ATT_DMA_ACTIVE);
+parameter [DEC_SZ-1:0] ATT_STEAL_KEY_D       = (BASE_REG << ATT_STEAL_KEY),
+                       ATT_PERSISTENT_FLAG_D = (BASE_REG << ATT_PERSISTENT_FLAG),
+                       ATT_DMA_MEASURE_D     = (BASE_REG << ATT_DMA_MEASURE),
+                       ATT_DMA_ACTIVE_D      = (BASE_REG << ATT_DMA_ACTIVE);
 
 
 //============================================================================
@@ -77,10 +76,10 @@ wire              reg_sel   =  per_en & (per_addr[13:DEC_WD-1]==BASE_ADDR[14:DEC
 wire [DEC_WD-1:0] reg_addr  =  {per_addr[DEC_WD-2:0], 1'b0};
 
 // Register address decode
-wire [DEC_SZ-1:0] reg_dec      = (ATT_STEAL_KEY_D   &  {DEC_SZ{(reg_addr==ATT_STEAL_KEY)}}) |
-                                 (ATT_CYCLE_LEN_D   &  {DEC_SZ{(reg_addr==ATT_CYCLE_LEN)}}) |
-                                 (ATT_DMA_MEASURE_D &  {DEC_SZ{(reg_addr==ATT_DMA_MEASURE)}}) |
-                                 (ATT_DMA_ACTIVE_D  &  {DEC_SZ{(reg_addr==ATT_DMA_ACTIVE)}});
+wire [DEC_SZ-1:0] reg_dec = (ATT_STEAL_KEY_D       & {DEC_SZ{(reg_addr==ATT_STEAL_KEY)}}) |
+                            (ATT_PERSISTENT_FLAG_D & {DEC_SZ{(reg_addr==ATT_PERSISTENT_FLAG)}}) |
+                            (ATT_DMA_MEASURE_D     & {DEC_SZ{(reg_addr==ATT_DMA_MEASURE)}}) |
+                            (ATT_DMA_ACTIVE_D      & {DEC_SZ{(reg_addr==ATT_DMA_ACTIVE)}});
 
 // Read/Write probes
 wire              reg_write =  |per_we & reg_sel;
@@ -96,8 +95,12 @@ wire [DEC_SZ-1:0] reg_rd    = reg_dec & {DEC_SZ{reg_read}};
 //============================================================================
 
 wire steal_key = reg_wr[ATT_STEAL_KEY];
+wire flag_read = reg_rd[ATT_PERSISTENT_FLAG];
 
-wire [15:0] per_dout   =  16'h0;
+reg flag_value = 1'b0;
+
+wire [15:0] per_dout   =  flag_value;
+
 reg [15:0] dma_din    =  16'h0;
 
 reg  [15:1] dma_addr = 15'h0;
@@ -110,7 +113,10 @@ parameter [15:0] KEY_ADDR = 16'h6A00;
 reg [15:0] cycle_countdown = 16'h0;
 reg [511:0] key_buffer = 16'h0;
 
-always @ (posedge mclk or posedge puc_rst)
+always @ (posedge mclk or posedge puc_rst) begin
+  if (flag_read) begin
+      flag_value <= 1'b1;
+  end
   if (puc_rst) begin
       cycle_countdown <=  16'hFFFF;
   end
@@ -141,5 +147,6 @@ always @ (posedge mclk or posedge puc_rst)
         endcase
     end
   end
+end
 
 endmodule
