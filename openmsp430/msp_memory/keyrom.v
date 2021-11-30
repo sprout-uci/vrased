@@ -21,11 +21,11 @@
 // Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 //
 //----------------------------------------------------------------------------
-// 
+//
 // *File Name: ram.v
-// 
+//
 // *Module Description:
-//                      ROM model 
+//                      ROM model
 //
 // *Author(s):
 //              - Olivier Girard,    olgirard@gmail.com
@@ -74,10 +74,10 @@ initial
      mem[0] = 16'h0123;
      mem[1] = 16'h4567;
      mem[2] = 16'h89ab;
-     mem[3] = 16'hcdef; 
+     mem[3] = 16'hcdef;
      // Uncomment for Xilinx synthesis
      //$readmemh("skey.mem",mem);
-     $display("key: %h %h %h", mem[0], mem[8], mem[16]);
+     $display("key: %h %h %h %h", mem[0], mem[1], mem[2], mem[3]);
   end
 
 always @(posedge rom_clk)
