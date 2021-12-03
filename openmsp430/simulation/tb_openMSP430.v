@@ -792,4 +792,8 @@ initial // Normal end of test
       end
    endtask
 
+// simple mechanism for putchar output in simulator
+always @(posedge p1_dout[7])
+    $write("%c", p1_dout[6:0]);
+
 endmodule

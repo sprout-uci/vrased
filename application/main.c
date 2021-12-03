@@ -33,3 +33,10 @@ int main() {
   __asm__ volatile("br #0xffff" "\n\t");
   return 0;
 }
+
+int putchar(int c)
+{
+    P1OUT = c;
+    P1OUT |= 0x80;
+    return c;
+}
