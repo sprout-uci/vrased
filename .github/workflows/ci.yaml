@@ -10,12 +10,12 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        target: ['make run', './soundness_and_security_proof.sh', './attack-keysize.sh', './attack-dma-ac.sh', './attack-stack.sh']
+        target: ['make run', './hw_mod_proof.sh', './soundness_and_security_proof.sh', './attack-keysize.sh', './attack-dma-ac.sh', './attack-stack.sh']
 
     steps:
       - name: Check out repository
         uses: actions/checkout@v2
       - name: Install dependencies
-        run: sudo apt-get install bison pkg-config gawk clang flex gcc-msp430 iverilog expect-dev -y
+        run: sudo apt-get install bison pkg-config gawk clang flex gcc-msp430 iverilog expect-dev libffi-dev -y
       - name: Run test bench
         run: cd scripts && ${{ matrix.target }}
