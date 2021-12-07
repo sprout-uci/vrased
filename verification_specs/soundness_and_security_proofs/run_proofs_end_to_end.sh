@@ -1,5 +1,8 @@
-sh install.sh
+# exit when any command fails
+set -e
+
+#sh install.sh
 chmod +x *.ltl
-sh proof_theorem1.ltl
-sh proof_theorem2_1.ltl
-sh proof_theorem2_2.ltl
+./proof_theorem1.ltl
+./proof_theorem2_1.ltl
+./proof_theorem2_2.ltl
