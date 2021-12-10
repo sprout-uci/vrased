@@ -25,7 +25,8 @@ __attribute__ ((section (".do_mac.call"))) void Hacl_HMAC_SHA2_256_hmac_entry() 
     // it may generate an early reset when writing out of the MAC region.
     // However, this is only needed when the compiler does not already optimize
     // away the redundant zero-intialization when noticing the explicit memcpy
-    // initialization below (e.g., as validated with clang-msp430).
+    // initialization below (e.g., as validated with clang-msp430; see also the
+    // ../../swatt-init directory).
     uint8_t key[64];
     #else
     uint8_t key[64] = {0};
