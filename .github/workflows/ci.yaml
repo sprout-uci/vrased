@@ -10,7 +10,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        target: ['make run', './hw_mod_proof.sh', './soundness_and_security_proof.sh', './attack-keysize.sh', './attack-dma-ac.sh', './attack-stack.sh']
+        target: ['make run', './hw_mod_proof.sh', './soundness_and_security_proof.sh', './attack-keysize.sh', './attack-dma-ac.sh', './attack-stack.sh', './attack-auth-timing.sh']
 
     steps:
       - name: Check out repository

