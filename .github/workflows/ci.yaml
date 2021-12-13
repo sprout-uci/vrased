@@ -10,7 +10,17 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        target: ['make run', './hw_mod_proof.sh', './soundness_and_security_proof.sh', './attack-keysize.sh', './attack-dma-ac.sh', './attack-stack.sh', './attack-auth-timing.sh', './attack-nemesis.sh']
+        target: [
+          'make run',
+          './B-1-dma-translation.sh',
+          './B-2-key-size.sh',
+          './C-2-stack-pointer.sh',
+          './C-3-auth-timing.sh',
+          './C-4-nemesis.sh',
+          './C-5-dma-sc.sh',
+          './D-hw-mod-proof.sh',
+          './D-soundness-and-security-proof.sh',
+        ]
 
     steps:
       - name: Check out repository
