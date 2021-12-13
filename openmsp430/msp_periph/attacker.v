@@ -50,7 +50,7 @@ parameter              DEC_WD      =  3;
 // Register addresses offset
 parameter [DEC_WD-1:0] ATT_STEAL_KEY       =  'h0,
                        ATT_PERSISTENT_FLAG =  'h2,
-                       ATT_DMA_MEASURE     =  'h4,
+                       ATT_CNT_UNTIL_RESET =  'h4,
                        ATT_DMA_ACTIVE      =  'h6;
 
 
@@ -61,7 +61,7 @@ parameter [DEC_SZ-1:0] BASE_REG    =  {{DEC_SZ-1{1'b0}}, 1'b1};
 // Register one-hot decoder
 parameter [DEC_SZ-1:0] ATT_STEAL_KEY_D       = (BASE_REG << ATT_STEAL_KEY),
                        ATT_PERSISTENT_FLAG_D = (BASE_REG << ATT_PERSISTENT_FLAG),
-                       ATT_DMA_MEASURE_D     = (BASE_REG << ATT_DMA_MEASURE),
+                       ATT_CNT_UNTIL_RESET_D = (BASE_REG << ATT_CNT_UNTIL_RESET),
                        ATT_DMA_ACTIVE_D      = (BASE_REG << ATT_DMA_ACTIVE);
 
 
@@ -78,7 +78,7 @@ wire [DEC_WD-1:0] reg_addr  =  {per_addr[DEC_WD-2:0], 1'b0};
 // Register address decode
 wire [DEC_SZ-1:0] reg_dec = (ATT_STEAL_KEY_D       & {DEC_SZ{(reg_addr==ATT_STEAL_KEY)}}) |
                             (ATT_PERSISTENT_FLAG_D & {DEC_SZ{(reg_addr==ATT_PERSISTENT_FLAG)}}) |
-                            (ATT_DMA_MEASURE_D     & {DEC_SZ{(reg_addr==ATT_DMA_MEASURE)}}) |
+                            (ATT_CNT_UNTIL_RESET_D & {DEC_SZ{(reg_addr==ATT_CNT_UNTIL_RESET)}}) |
                             (ATT_DMA_ACTIVE_D      & {DEC_SZ{(reg_addr==ATT_DMA_ACTIVE)}});
 
 // Read/Write probes
@@ -96,10 +96,17 @@ wire [DEC_SZ-1:0] reg_rd    = reg_dec & {DEC_SZ{reg_read}};
 
 wire steal_key = reg_wr[ATT_STEAL_KEY];
 wire flag_read = reg_rd[ATT_PERSISTENT_FLAG];
+wire cnt_until_reset = reg_wr[ATT_CNT_UNTIL_RESET];
+
+reg counting_until_reset = 1'b0;
+reg [15:0] cycles_until_reset = 16'h0;
 
 reg flag_value = 1'b0;
 
-wire [15:0] per_dout   =  flag_value;
+wire [15:0] flag_output = flag_value & {16{reg_rd[ATT_PERSISTENT_FLAG]}};
+wire [15:0] cnt_output = cycles_until_reset & {16{reg_rd[ATT_CNT_UNTIL_RESET]}};
+
+wire [15:0] per_dout   =  flag_output | cnt_output;
 
 reg [15:0] dma_din    =  16'h0;
 
@@ -117,10 +124,18 @@ always @ (posedge mclk or posedge puc_rst) begin
   if (flag_read) begin
       flag_value <= 1'b1;
   end
+  if (cnt_until_reset) begin
+      counting_until_reset <= 1'b1;
+      cycles_until_reset <= 16'h0;
+  end
   if (puc_rst) begin
       cycle_countdown <=  16'hFFFF;
+      counting_until_reset <= 1'b0;
   end
   else begin
+    if (counting_until_reset) begin
+        cycles_until_reset <= cycles_until_reset + 1;
+    end
     if (steal_key) begin
         cycle_countdown <= 16'd65;
     end

