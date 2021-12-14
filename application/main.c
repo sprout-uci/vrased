@@ -13,7 +13,7 @@ extern void my_memcpy(uint8_t* dst, uint8_t* src, int size);
 int main() {
   uint8_t challenge[32];
   uint8_t response[32];
-  my_memset(challenge, 32, 1);
+  my_memset(challenge, 32, 0xff);
 
 //  uncomment for atomicity violation:
 //  __asm__ volatile("br #0xa008" "\n\t");

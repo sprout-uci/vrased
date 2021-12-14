@@ -76,6 +76,13 @@ reg   [ADDR_MSB:0] ram_addr_reg;
 
 wire        [15:0] mem_val = mem[ram_addr];
    
+integer i;
+initial
+    begin
+        for(i=0; i<MEM_SIZE/2; i=i+1) begin
+            mem[i] <= 0;
+        end
+    end
   
 always @(posedge ram_clk)
   if (~ram_cen & ram_addr<(MEM_SIZE/2))
