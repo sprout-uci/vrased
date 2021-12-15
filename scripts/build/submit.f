@@ -48,8 +48,8 @@
 ../openmsp430/msp_memory/keyrom.v
 ../openmsp430/msp_memory/pmem.v
 
-+incdir+../vrased/hw-mod/
-../vrased/hw-mod/vrased.v
++incdir+../vrased/$(VRASED_HW_MOD)/
+../vrased/$(VRASED_HW_MOD)/vrased.v
 
 //=============================================================================
 // CPU

@@ -22,9 +22,9 @@
 # Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #
 #------------------------------------------------------------------------------
-# 
+#
 # File Name: vrasedsim
-# 
+#
 # Author(s):
 #             - Olivier Girard,    olgirard@gmail.com
 #
@@ -62,7 +62,13 @@ fi
 ###############################################################################
 cfolder=$1
 verfile=$cfolder"/simulation/sim.v";
+
+if [ -z $VRASED_HW_MOD ]; then
+    export VRASED_HW_MOD='hw-mod'
+fi
+echo "using HW-Mod at '../vrased/$VRASED_HW_MOD'"
 submitfile="./build/submit.f";
+
 incfile="../openmsp430/msp_core/openMSP430_defines.v";
 tmpfolder=$cfolder
 memfolder="../msp_bin"
@@ -87,14 +93,14 @@ echo $tmpfolder
 ###############################################################################
 echo "Cleanup..."
 rm -rf *.mem
-rm -rf simv 
+rm -rf simv
 
 ###############################################################################
 #                              Run simulation                                 #
 ###############################################################################
 echo " ======================================================="
 echo "| Start simulation:             $1"
-echo " ======================================================="		
+echo " ======================================================="
 
 # Create links
 cp $verfile $tmpfolder/stimulus.v
@@ -160,7 +166,7 @@ cd $cwd
 
 # Generate Program memory file
 echo "Convert IHEX file to Verilog MEMH format..."
-./build/ihex2mem.tcl -ihex $cfolder/vrased.a43 -out $memfolder/pmem.mem -mem_size $pmemsize 
+./build/ihex2mem.tcl -ihex $cfolder/vrased.a43 -out $memfolder/pmem.mem -mem_size $pmemsize
 ./build/ihex2mem.tcl -ihex $cfolder/vrased.a43 -out $memfolder/smem.mem -mem_size   $smemsize -mem_offset $smem_offset
 
 # Copy *.mem to current dir since pmem.v and smem.v read memory from "./"
@@ -172,7 +178,7 @@ cp $tmpfolder/stimulus.v ../openmsp430/simulation/stimulus.v
 # Start verilog simulation
 if [ "$2" = false ] ; then
 	echo "Start Verilog simulation..."
-	./build/rtlsim.sh    $tmpfolder/stimulus.v $memfolder/pmem.mem $submitfile 
+	./build/rtlsim.sh    $tmpfolder/stimulus.v $memfolder/pmem.mem $submitfile
 fi
 
 
@@ -180,6 +186,4 @@ echo "Cleanup..."
 rm -rf pmem.*
 rm -rf smem.*
 rm -rf stimulus.v
-rm -rf simv 
-
-
+rm -rf simv

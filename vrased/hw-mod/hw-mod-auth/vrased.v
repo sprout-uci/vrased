@@ -1,9 +1,9 @@
-`include "../verilog/hw-mod/X_stack.v"
-`include "../verilog/hw-mod/AC.v"
-`include "../verilog/hw-mod/atomicity.v"
-`include "../verilog/hw-mod/dma_AC.v"
-`include "../verilog/hw-mod/dma_detect.v"
-`include "../verilog/hw-mod/dma_X_stack.v"
+`include "X_stack.v"
+`include "AC.v"
+`include "atomicity.v"
+`include "dma_AC.v"
+`include "dma_detect.v"
+`include "dma_X_stack.v"
 
 `ifdef OMSP_NO_INCLUDE
 `else
@@ -11,20 +11,26 @@
 `endif
 
 
-module smart_with_dma (
+module vrased (
+    clk,
     pc,
     data_en,
     data_wr,
     data_addr,
-    
+
     // DMA
     dma_addr,
     dma_en,
-    
+
+    irq,
+
     reset
 );
 
 
+/* unused, added for compatibility */
+input           clk;
+input           irq;
 
 input   [15:0]  pc;
 input           data_en;
@@ -47,7 +53,11 @@ parameter SMEM_SIZE = `SMEM_SIZE;
 parameter KMEM_BASE = `SKEY_BASE;
 parameter KMEM_SIZE = `SKEY_SIZE;
 //
-parameter CTR_BASE = 16'h9000;
+/* NOTE: the original CTR_BASE value 0x9000 falls out of the RAM range. We
+ * changed this here to the address used by RATA
+ * (https://github.com/sprout-uci/RATA/blob/main/vrased/sw-att/wrapper.c#L3).
+ */
+parameter CTR_BASE = 16'h0270;
 parameter CTR_SIZE = 16'h001F;
 /////////////////////////////////////////////////////
 
@@ -119,7 +129,7 @@ dma_detect #(
     .pc         (pc),
     .dma_addr   (dma_addr),
     .dma_en     (dma_en),
-    .reset      (dma_detect_reset) 
+    .reset      (dma_detect_reset)
 );
 
 wire   dma_X_stack_reset;
@@ -133,9 +143,18 @@ dma_X_stack #(
     .pc         (pc),
     .dma_addr   (dma_addr),
     .dma_en     (dma_en),
-    .reset      (dma_X_stack_reset) 
+    .reset      (dma_X_stack_reset)
 );
 
-assign reset = X_stack_reset | AC_reset | atomicity_reset | dma_AC_reset | dma_detect_reset | dma_X_stack_reset;
+/**
+ * NOTE: added explicit clocking to avoid reset glitches in C-2-stack-pointer
+ * simulation (this was also done by the original VRASED authors in
+ * ../hw-mod/).
+ */
+reg vrased_res;
+always @(posedge clk)
+    vrased_res <= X_stack_reset | AC_reset | atomicity_reset | dma_AC_reset | dma_detect_reset | dma_X_stack_reset;
+
+assign reset = vrased_res;
 
 endmodule

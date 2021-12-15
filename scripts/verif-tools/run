@@ -2,13 +2,21 @@
 rm -rf build-verif
 mkdir -p build-verif
 
+if [ -z $VRASED_HW_MOD ]; then
+    export VRASED_HW_MOD='hw-mod'
+fi
+echo "using HW-Mod at '../../vrased/$VRASED_HW_MOD'"
 
 # Copy VRASED's Verilog source code to temp directory
 cp ../../openmsp430/msp_core/openMSP430_undefines.v ./build-verif/
 cp ../../openmsp430/msp_core/openMSP430_defines.v ./build-verif/
-cp ../../vrased/hw-mod/*.v ./build-verif/
+cp ../../vrased/$VRASED_HW_MOD/*.v ./build-verif/
+
 # Specification
 cp ../../verification_specs/ltl_specs.smv ./build-verif
+
+# Override default SMV spec if one exists in the hw-mod directory (i.e., hw-mod-auth)
+cp ../../vrased/$VRASED_HW_MOD/ltl_specs.smv ./build-verif/
 
 for filename in ./build-verif/*.v; do
 	sed -i "s/always @(posedge clk)/always @(*)/g" $filename

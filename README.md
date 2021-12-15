@@ -14,6 +14,9 @@ found in the top-level [gap-attacks](https://github.com/martonbognar/gap-attacks
 A full reproducible build and reference output for all of the VRASED attack
 experiments, executed via a cycle-accurate `iverilog` simulation of the
 openMSP430 core, can be viewed in the [GitHub Actions log](https://github.com/martonbognar/vrased-gap/actions).
+We also integrated VRASED's machine-checked proofs into the CI framework,
+showing that our attacks remain entirely undedected by the current proof
+strategy.
 
 **:no_entry_sign: Mitigations.**
 Where applicable, we provide simple patches for the identified implementation
@@ -68,10 +71,37 @@ proof-of-concept attacks.
 
 Our attacks are integrated into the _untrusted_ VRASED wrapper code.
 Specifically, we extended the untrusted VRASED invocation code in
-[`wrapper.c`](https://github.com/martonbognar/vrased-gap/blob/master/vrased/sw-att/wrapper.c#L113).
+[`wrapper.c`](vrased/sw-att/wrapper.c#L113).
 The required attack code is selected using C precompiler directives, depending
 on the value of `__ATTACK` (i.e., a number between 1 and 6, set in the
 top-level attack runner script in the `scripts` directory).
+
+**:warning: Note (HW-Mod-Auth).** VRASED includes an alternative, and similarly verified,
+version of HW-Mod to support verifier authentication (cf. paper).
+Unfortunately, however, while the added functionality to support verifier
+authentication is rather limited, both versions of HW-Mod do not share a
+unified implementation nor proof code base.
+Our continuous integration setup, hence, runs all (applicable) attacks against
+both the default [`hw-mod`](vrased/hw-mod) and the alternative
+[`hw-mod-auth`](vrased/hw-mod/hw-mod-auth).
+Results for both versions of HW-Mod can be viewed in the [GitHub Actions
+log](https://github.com/martonbognar/vrased-gap/actions).
+Importantly, our experiments revealed several divergences and additional
+shortcomings of the verified HW-Mod-Auth module:
+* HW-Mod-Auth does _not_ monitor the `irq` signal and, hence, does not comply
+  with the explicit VRASED atomicity design requirement. This important
+  requirement also seems to be entirely missing from the HW-Mod-Auth LTL
+  requirements, and this implementation oversight was, hence, not caught by the
+  proof.  (Also note that, in the absence of resets on interrupts, the
+  C-4-nemesis side-channel attack, of course, does not apply to HW-Mod-Auth).
+* The HW-Mod-Auth implementation (but not proof, cf. below) interestingly
+  appears to have been parameterized with the correct key size, making
+  the optional HW-Mod-Auth resistant against attack B-2-key-size.
+* The proof accompanying HW-Mod-Auth does currently _not_ succeed: it was
+  incorrectly parameterized with wrong `KMEM_SIZE` and `CTR_SIZE` parameters
+  that are out-of-sync with the implementation. This could have been detected,
+  as the current proof fails for the accompanying implementation, even
+  generating insightful counterexamples (cf. continuous integration logs).
 
 ## Running the proof-of-concept attacks
 
