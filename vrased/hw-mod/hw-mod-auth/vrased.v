@@ -53,7 +53,11 @@ parameter SMEM_SIZE = `SMEM_SIZE;
 parameter KMEM_BASE = `SKEY_BASE;
 parameter KMEM_SIZE = `SKEY_SIZE;
 //
-parameter CTR_BASE = 16'h9000;
+/* NOTE: the original CTR_BASE value 0x9000 falls out of the RAM range. We
+ * changed this here to the address used by RATA
+ * (https://github.com/sprout-uci/RATA/blob/main/vrased/sw-att/wrapper.c#L3).
+ */
+parameter CTR_BASE = 16'h0270;
 parameter CTR_SIZE = 16'h001F;
 /////////////////////////////////////////////////////
 

@@ -12,8 +12,8 @@
 #define ATTEST_DATA_ADDR 0xE000
 #define ATTEST_SIZE 0x20
 
-/* Fields for VRASED_A, in unprotected DMEM for our PoC */
-#define CTR_ADDR 0x9000
+/* Fields for VRASED_A */
+#define CTR_ADDR 0x0270
 #define VRF_AUTH 0x0250
 
 extern void
@@ -143,9 +143,9 @@ void my_memcpy(uint8_t* dst, uint8_t* src, int size) {
   for(i=0; i<size; i++) dst[i] = src[i];
 }
 
-void leak_key(uint8_t *buf, int start, int end)
+void dump_buf(char *name, uint8_t *buf, int start, int end)
 {
-    printf("leak[%d:%d]: ", start, end-1);
+    printf("%s[%d:%d]: ", name, start, end-1);
 
     for (int i = start; i < end; i++)
         printf("%02x", *(buf+i));
@@ -181,7 +181,7 @@ void VRASED (uint8_t *challenge, uint8_t *response) {
     printf("Attack: %d; have_reset: %d\n", __ATTACK, have_reset);
 
     #if __ATTACK == 1
-      leak_key((uint8_t*) KEY_ADDR, 31, 64);
+      dump_buf("leak", (uint8_t*) KEY_ADDR, 31, 64);
       return;
     #endif
 
@@ -192,13 +192,13 @@ void VRASED (uint8_t *challenge, uint8_t *response) {
           "  nop \n"
           ".ENDR \n"
       );
-      leak_key((uint8_t*) MAC_ADDR, 0, 64);
+      dump_buf("leak", (uint8_t*) MAC_ADDR, 0, 64);
       return;
     #endif
 
     #if __ATTACK == 3
       if (have_reset) {
-        leak_key((uint8_t*) (STACK_POISON_ADDRESS - 64), 0, 22);
+        dump_buf("leak", (uint8_t*) (STACK_POISON_ADDRESS - 64), 0, 22);
         return;
       } else {
         printf("First run\n");
@@ -206,9 +206,8 @@ void VRASED (uint8_t *challenge, uint8_t *response) {
     #endif
 
     #if __ATTACK == 4 || __ATTACK == 5 || __ATTACK == 6
-      /* Initializing the counter address for demonstration purposes; normally this
-         would also be protected (but its value is known to the attacker) */
-      // my_memset((uint8_t*) CTR_ADDR, 32, 0);
+      if (!have_reset)
+        dump_buf("ctr", (uint8_t*) CTR_ADDR, 0, 32);
 
       my_memset((uint8_t*) VRF_AUTH, 32, 0);
       uint8_t * verification = (uint8_t*) VRF_AUTH;
