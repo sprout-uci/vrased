@@ -9,4 +9,9 @@ bash build.sh
 cd ..
 unbuffer ./run | tee output.txt
 echo "--------------------------------------------------------------------------------"
-! grep -i "false" output.txt
+
+if [[ "$EXPECT_FAIL" -eq "0" ]]; then
+    ! grep -i "false" output.txt
+else
+    echo "expected failure!"
+fi

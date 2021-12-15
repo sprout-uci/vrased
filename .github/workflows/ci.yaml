@@ -22,6 +22,19 @@ jobs:
           './D-hw-mod-proof.sh',
           './D-soundness-and-security-proof.sh',
         ]
+        include:
+          # Expect fail: the current HW-Mod-Auth proof fails(!)
+          - vrased-hw-mod: hw-mod/hw-mod-auth
+            target: ./D-hw-mod-proof.sh
+            expect-fail: 1
+          # Expect fail: HW-Mod-Auth was parameterized with the correct key size
+          - vrased-hw-mod: hw-mod/hw-mod-auth
+            target: ./B-2-key-size.sh
+            expect-fail: 1
+        exclude:
+          # N/A: HW-Mod-Auth incorrectly does not reset on IRQ(!)
+          - vrased-hw-mod: hw-mod/hw-mod-auth
+            target: ./C-4-nemesis.sh
 
     steps:
       - name: Check out repository
@@ -29,4 +42,7 @@ jobs:
       - name: Install dependencies
         run: sudo apt-get install bison pkg-config gawk clang flex gcc-msp430 iverilog expect-dev libffi-dev -y
       - name: Run test bench
-        run: cd scripts && VRASED_HW_MOD=${{ matrix.vrased-hw-mod }} ${{ matrix.target }}
+        env:
+          VRASED_HW_MOD: ${{ matrix.vrased-hw-mod }}
+          EXPECT_FAIL: ${{ matrix.expect-fail }}
+        run: cd scripts && ${{ matrix.target }}

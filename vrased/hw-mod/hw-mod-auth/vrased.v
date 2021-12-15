@@ -146,6 +146,15 @@ dma_X_stack #(
     .reset      (dma_X_stack_reset)
 );
 
-assign reset = X_stack_reset | AC_reset | atomicity_reset | dma_AC_reset | dma_detect_reset | dma_X_stack_reset;
+/**
+ * NOTE: added explicit clocking to avoid reset glitches in C-2-stack-pointer
+ * simulation (this was also done by the original VRASED authors in
+ * ../hw-mod/).
+ */
+reg vrased_res;
+always @(posedge clk)
+    vrased_res <= X_stack_reset | AC_reset | atomicity_reset | dma_AC_reset | dma_detect_reset | dma_X_stack_reset;
+
+assign reset = vrased_res;
 
 endmodule
