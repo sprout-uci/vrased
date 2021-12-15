@@ -5,12 +5,12 @@ on:
 
 jobs:
   bench:
-    name: ${{ matrix.target }}
+    name: ${{ matrix.target }} on ${{ matrix.vrased-hw-mod }}
     runs-on: ubuntu-20.04
     strategy:
       fail-fast: false
       matrix:
-        vrased-hw-mod: ['hw-mod', 'hw-mod/hw-mod-auth'],
+        vrased-hw-mod: ['hw-mod', 'hw-mod/hw-mod-auth']
         target: [
           'make run',
           './B-1-dma-translation.sh',
@@ -29,4 +29,4 @@ jobs:
       - name: Install dependencies
         run: sudo apt-get install bison pkg-config gawk clang flex gcc-msp430 iverilog expect-dev libffi-dev -y
       - name: Run test bench
-        run: cd scripts && VRASED_HW_MOD={{ matrix.vrased-hw-mod }} ${{ matrix.target }}
+        run: cd scripts && VRASED_HW_MOD=${{ matrix.vrased-hw-mod }} ${{ matrix.target }}
