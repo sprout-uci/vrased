@@ -62,13 +62,13 @@ fi
 ###############################################################################
 cfolder=$1
 verfile=$cfolder"/simulation/sim.v";
-if [ -z ${VRASED_AUTH+x} ]; then
-submitfile="./build/submit.f";
-echo "Using based VRASED setup"
-else
-submitfile="./build/submit-auth.f";
-echo "Using VRASED_A setup"
+
+if [ -z $VRASED_HW_MOD ]; then
+    export VRASED_HW_MOD='hw-mod'
 fi
+echo "using HW-Mod at '../vrased/$VRASED_HW_MOD'"
+submitfile="./build/submit.f";
+
 incfile="../openmsp430/msp_core/openMSP430_defines.v";
 tmpfolder=$cfolder
 memfolder="../msp_bin"
