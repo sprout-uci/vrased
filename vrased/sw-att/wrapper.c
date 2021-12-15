@@ -232,19 +232,21 @@ void VRASED (uint8_t *challenge, uint8_t *response) {
     printf("Attack: %d; have_reset: %d\n", __ATTACK, have_reset);
 
     #if __ATTACK == 1
-      if (!have_reset)
-        dump_buf("leak", (uint8_t*) KEY_ADDR, 31, 64);
+      if (!have_reset) {
+        __asm__ volatile(
+            "mov #1, &" _s_(DMA_ATTACKER_STEAL_KEY) "\n"
+            ".REPT 64 \n"
+            "  nop \n"
+            ".ENDR \n"
+        );
+      }
+      dump_buf("leak", (uint8_t*) MAC_ADDR, 0, 64);
       return;
     #endif
 
     #if __ATTACK == 2
-      __asm__ volatile(
-          "mov #1, &" _s_(DMA_ATTACKER_STEAL_KEY) "\n"
-          ".REPT 64 \n"
-          "  nop \n"
-          ".ENDR \n"
-      );
-      dump_buf("leak", (uint8_t*) MAC_ADDR, 0, 64);
+      if (!have_reset)
+        dump_buf("leak", (uint8_t*) KEY_ADDR, 31, 64);
       return;
     #endif
 

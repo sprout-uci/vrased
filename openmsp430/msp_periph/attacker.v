@@ -146,6 +146,7 @@ always @ (posedge mclk or posedge puc_rst) begin
       cycle_countdown <=  16'hFFFF;
       counting_until_reset <= 1'b0;
       dma_countdown_active <= 1'b0;
+      dma_en <= 1'b0;
   end
   else begin
     dma_en <= (dma_countdown_active && dma_countdown == 16'h0) || cycle_countdown != 16'hFFFF;
