@@ -13,7 +13,7 @@
 #define ATTEST_SIZE 0x20
 
 /* Fields for VRASED_A, in unprotected DMEM for our PoC */
-#define CTR_ADDR 0x0270
+#define CTR_ADDR 0x9000
 #define VRF_AUTH 0x0250
 
 extern void
@@ -208,7 +208,7 @@ void VRASED (uint8_t *challenge, uint8_t *response) {
     #if __ATTACK == 4 || __ATTACK == 5 || __ATTACK == 6
       /* Initializing the counter address for demonstration purposes; normally this
          would also be protected (but its value is known to the attacker) */
-      my_memset((uint8_t*) CTR_ADDR, 32, 0);
+      // my_memset((uint8_t*) CTR_ADDR, 32, 0);
 
       my_memset((uint8_t*) VRF_AUTH, 32, 0);
       uint8_t * verification = (uint8_t*) VRF_AUTH;
