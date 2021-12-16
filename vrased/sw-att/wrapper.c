@@ -152,6 +152,57 @@ void dump_buf(char *name, uint8_t *buf, int start, int end)
     printf("\n");
 }
 
+/* defined in dump_regs.S */
+void dump_regs_before(void);
+void dump_regs_after(void);
+
+struct __attribute__((__packed__)) regs_dump
+{
+    uint16_t r1;
+    uint16_t r2;
+    uint16_t r3;
+    uint16_t r4;
+    uint16_t r5;
+    uint16_t r6;
+    uint16_t r7;
+    uint16_t r8;
+    uint16_t r9;
+    uint16_t r10;
+    uint16_t r11;
+    uint16_t r12;
+    uint16_t r13;
+    uint16_t r14;
+    uint16_t r15;
+};
+struct regs_dump regs_before, regs_after;
+
+void print_and_compare_regs(char *str1, struct regs_dump *regs_struct1,
+                            char *str2, struct regs_dump *regs_struct2)
+{
+    uint16_t *regs1 = (uint16_t*) regs_struct1;
+    uint16_t *regs2 = (uint16_t*) regs_struct2;
+    uint16_t reg1, reg2;
+    int i, eq, leak = 0;
+
+    printf("dumping registers %s/%s:\n", str1, str2);
+    printf("--------------------------------------------------------\n");
+    for (i = 0; i < 15; i++)
+    {
+        reg1 = *(regs1+i);
+        reg2 = *(regs2+i);
+        eq = (reg1 == reg2);
+        if (reg2 && !eq)
+            leak++;
+
+        printf("\tR%-2d = 0x%04x / 0x%04x %s (MSPGCC ABI %s-save)\n",
+            i+1, reg1, reg2, eq ? " " : "*", i < 11 ? "callee" : "caller");
+    }
+    printf("--------------------------------------------------------\n");
+
+    if (leak)
+        printf("%d non-zero registers leaked!\n", leak);
+}
+
 int have_reset = 0;
 
 /**
@@ -319,10 +370,10 @@ void VRASED (uint8_t *challenge, uint8_t *response) {
 
     // Write return address of Hacl_HMAC_SHA2_256_hmac_entry
     // to RAM:
-    __asm__ volatile("mov    #0x0010,   r6" "\n\t");
+    __asm__ volatile("mov    #cont_vrased,   r6" "\n\t");
     __asm__ volatile("mov    #0x0300,   r5" "\n\t");
     __asm__ volatile("mov    r0,        @(r5)" "\n\t");
-    __asm__ volatile("add    r6,        @(r5)" "\n\t");
+    __asm__ volatile("mov    r6,        @(r5)" "\n\t");
 
     // Save the original value of the Stack Pointer (R1):
     __asm__ volatile("mov    r1,    r5" "\n\t");
@@ -334,9 +385,25 @@ void VRASED (uint8_t *challenge, uint8_t *response) {
       __asm__ volatile("mov    #0x1000,     r1" "\n\t");
     #endif
 
+    #if __ATTACK == 7
+      __asm__ volatile("br #dump_regs_before\n\t");
+      /* NOTE: we use an explicit return label and branch to asm code as we can't
+       * use the stack call/return at this point and don't want to pollute regs.
+       */
+      __asm__ volatile(".global cont_dump_regs_before\n\t");
+      __asm__ volatile("cont_dump_regs_before: \n\t");
+    #endif
+
     // Call SW-Att:
     __asm__ volatile ("nop\n\t"); /* timing alignment */
     __asm__ volatile ("br #Hacl_HMAC_SHA2_256_hmac_entry\n\t");
+    __asm__ volatile("cont_vrased: \n\t");
+
+    #if __ATTACK == 7
+      __asm__ volatile("br #dump_regs_after\n\t");
+      __asm__ volatile(".global cont_dump_regs_after\n\t");
+      __asm__ volatile("cont_dump_regs_after: \n\t");
+    #endif
 
     // Copy retrieve the original stack pointer value:
     __asm__ volatile("mov    r5,    r1" "\n\t");
@@ -357,6 +424,10 @@ void VRASED (uint8_t *challenge, uint8_t *response) {
       if (attack_iteration <= 2) {
         goto attack4;
       }
+    #endif
+
+    #if __ATTACK == 7
+        print_and_compare_regs("before", &regs_before, "after", &regs_after);
     #endif
 
     // Return the HMAC value to the application:

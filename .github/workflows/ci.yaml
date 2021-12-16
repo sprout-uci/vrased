@@ -19,6 +19,7 @@ jobs:
           './C-3-auth-timing.sh',
           './C-4-nemesis.sh',
           './C-5-dma-sc.sh',
+          './A-1-register-leak.sh',
           './D-hw-mod-proof.sh',
           './D-soundness-and-security-proof.sh',
         ]

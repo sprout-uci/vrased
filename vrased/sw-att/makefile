@@ -1,6 +1,6 @@
 # makfile configuration
 NAME            = vrased
-OBJECTS         = vrased.o rom_wrapper.o hacl_mac.lib
+OBJECTS         = vrased.o rom_wrapper.o hacl_mac.lib dump_regs.o
 
 # Choose GCC toolchain prefix ('msp430' for MSPGCC / 'msp430-elf' for GCC RedHat/TI)
 MSPGCC_PFX      = msp430
@@ -38,6 +38,9 @@ ${NAME}.size: ${NAME}.elf
 
 ${NAME}.o: main.c
 	${CC} ${CFLAGS} -c -o $@ main.c
+
+dump_regs.o: dump_regs.S
+	${CC} ${CFLAGS} "-D__ATTACK=${ATTACK}" -c -o $@ $<
 
 rom_wrapper.o:
 	${CC} ${CFLAGS} "-D__ATTACK=${ATTACK}" -c -o $@ wrapper.c #./hacl_mac.lib
