@@ -20,7 +20,7 @@ strategy.
 
 **:no_entry_sign: Mitigations.**
 Where applicable, we provide simple patches for the identified implementation
-flaws in a separate [mitigations](https://github.com/martonbognar/vrased-gap/tree/mitigations)
+flaws in a separate [mitigations](tree/mitigations)
 branch, referenced in the table below.
 Note, however, that these patches merely fix the identified vulnerabilities in
 the VRASED reference implementation in an _ad-hoc_ manner.
@@ -36,18 +36,19 @@ We provide more discussion on mitigations and guidelines in the paper.
 
 | Paper reference | Proof-of-concept attack | Mitigation? | Description |
 |-----------------|---------------|-------------|-------------|
-| VI-B1           | [B-1-dma-translation.sh](https://github.com/martonbognar/vrased-gap/blob/master/scripts/B-1-dma-translation.sh) | :heavy_check_mark: [todo](todo) | Leak full key[0:63] via incorrect DMA address translation. |
-| VI-B2           | [B-2-key-size.sh](https://github.com/martonbognar/vrased-gap/blob/master/scripts/B-2-key-size.sh) | :heavy_check_mark: [todo](todo) | Leak key[31:63] via inconsistent key sizes. |
+| VI-B1           | [B-1-dma-translation.sh](scripts/B-1-dma-translation.sh) | :heavy_check_mark: [todo](todo) | Leak full key[0:63] via incorrect DMA address translation. |
+| VI-B2           | [B-2-key-size.sh](scripts/B-2-key-size.sh) | :heavy_check_mark: [todo](todo) | Leak key[31:63] via inconsistent key sizes. |
+| Appendix-C-1    | [A-1-register-leak.sh](scripts/A-1-register-leak.sh) | :heavy_check_mark: [todo](todo) | Leak uncleared caller-save registers after SW-Att execution. |
 
 ### Missing attacker capabilities
 
 | Paper reference | Proof-of-concept attack | Mitigation? | Description |
 |-----------------|---------------|-------------|-------------|
-| VI-C1           | [apex-gap repository](https://github.com/martonbognar/apex-gap) | :heavy_check_mark: [todo](todo) | Secure metadata corruption with a peripheral. |
-| VI-C2           | [C-2-stack-pointer.sh](https://github.com/martonbognar/vrased-gap/blob/master/scripts/C-2-stack-pointer.sh) | :heavy_check_mark: [todo](todo) | Leak key[0:21] with stack pointer poisoning. |
-| VI-C3           | [C-3-auth-timing.sh](https://github.com/martonbognar/vrased-gap/blob/master/scripts/C-3-auth-timing.sh) | :heavy_check_mark: [todo](todo) | Leak authentication token with start-to-end timing. |
-| VI-C4           | [C-4-nemesis.sh](https://github.com/martonbognar/vrased-gap/blob/master/scripts/C-4-nemesis.sh) | :heavy_check_mark: [todo](todo) | Leak authentication token with Nemesis side channel. |
-| VI-C5           | [C-5-dma-sc.sh](https://github.com/martonbognar/vrased-gap/blob/master/scripts/C-5-dma-sc.sh) | :heavy_check_mark: [todo](todo) | Leak authentication token with DMA side channel. |
+| VI-C1           | [apex-gap repository](martonbognar/apex-gap) | :heavy_check_mark: [todo](todo) | Secure metadata corruption with a peripheral. |
+| VI-C2           | [C-2-stack-pointer.sh](scripts/C-2-stack-pointer.sh) | :heavy_check_mark: [todo](todo) | Leak key[0:21] with stack pointer poisoning. |
+| VI-C3           | [C-3-auth-timing.sh](scripts/C-3-auth-timing.sh) | :heavy_check_mark: [todo](todo) | Leak authentication token with start-to-end timing. |
+| VI-C4           | [C-4-nemesis.sh](scripts/C-4-nemesis.sh) | :heavy_check_mark: [todo](todo) | Leak authentication token with Nemesis side channel. |
+| VI-C5           | [C-5-dma-sc.sh](scripts/C-5-dma-sc.sh) | :heavy_check_mark: [todo](todo) | Leak authentication token with DMA side channel. |
 
 ### Deductive errors
 
@@ -65,7 +66,7 @@ hardware-software co-design, described in the following paper.
 > I. D. O. Nunes, K. Eldefrawy, N. Rattanavipanon, M. Steiner, and G. Tsudik, "VRASED: A verified hardware/software co-design for remote attestation," in 28th USENIX Security Symposium, 2019, pp. 1429–1446.
 
 The original upstream VRASED system is accessible via commit
-[4a29c24](https://github.com/martonbognar/vrased-gap/commit/4a29c248d55b132bacf2fd0e8b659d561478b8b6)
+[4a29c24](4a29c248d55b132bacf2fd0e8b659d561478b8b6)
 and earlier. All subsequent commits implement our test framework and
 proof-of-concept attacks.
 
