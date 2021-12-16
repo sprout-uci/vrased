@@ -70,6 +70,7 @@ echo "using HW-Mod at '../vrased/$VRASED_HW_MOD'"
 submitfile="./build/submit.f";
 
 incfile="../openmsp430/msp_core/openMSP430_defines.v";
+configfile="../openmsp430/msp_core/vrased-config.v";
 tmpfolder=$cfolder
 memfolder="../msp_bin"
 
@@ -108,6 +109,7 @@ cp $verfile $tmpfolder/stimulus.v
 
 # Make local copy of the openMSP403 configuration file and remove comments
 cp  $incfile  $tmpfolder/pmem.inc
+cat $configfile >> $tmpfolder/pmem.inc
 sed -i "/^\/\// s,.*,," $tmpfolder/pmem.inc
 
 # Get Program Memory size
@@ -129,13 +131,8 @@ if [ $dmemunit == "KB" ]
 fi
 
 # Get SROM Memory size
-smemunit=`grep SMEM_SIZE_ $tmpfolder/pmem.inc | grep -v ifdef | grep -v "//" | cut -d'_' -f4`
-smemsize=`grep SMEM_SIZE_ $tmpfolder/pmem.inc | grep -v ifdef | grep -v "//" | cut -d'_' -f3`
-smemsize=${smemsize/p/.}
-if [ $smemunit == "KB" ]
-  then
-    smemsize=`echo "smemsize=$smemsize * 1024; smemsize /= 1; smemsize" | bc`
-fi
+smembase=`grep SMEM_BASE $tmpfolder/pmem.inc | grep -v ifdef   | grep -v "//" | cut -d"d" -f3`
+smemsize=`grep SMEM_SIZE $tmpfolder/pmem.inc | grep -v ifdef | grep -v "//"  | cut -d' ' -f3`
 
 # Get peripheral size
 persize=`grep PER_SIZE_ $tmpfolder/pmem.inc | grep -v ifdef | grep -v "//" | cut -d'_' -f3`
@@ -143,8 +140,8 @@ persize=`grep PER_SIZE_ $tmpfolder/pmem.inc | grep -v ifdef | grep -v "//" | cut
 smem_offset=`echo "smemoff=64*1024 - $smemsize - $pmemsize ; smemoff /= 1; smemoff " | bc`
 
 # Get SKEY Memory size
-skeysize=`grep SKEY_SIZE $tmpfolder/pmem.inc | grep -v ifdef | grep -v "//"  | cut -d' ' -f3`
-skeybase=0x`grep SKEY_BASE $tmpfolder/pmem.inc | grep -v ifdef   | grep -v "//" | cut -d"h" -f2`
+skeysize=`grep -m 1 SKEY_SIZE $tmpfolder/pmem.inc | grep -v ifdef | grep -v "//"  | cut -d' ' -f3`
+skeybase=`grep SKEY_BASE $tmpfolder/pmem.inc | grep -v ifdef   | grep -v "//" | cut -d"d" -f3`
 
 cwd=$(pwd)
 
@@ -153,7 +150,6 @@ make clean
 
 cp linker.msp430.x pmem.def
 pmembase=$((0x10000-$pmemsize))
-smembase=$(($pmembase-$smemsize))
 dmembase=$persize
 sed -i "s/PMEM_BASE/$pmembase/g" pmem.def
 sed -i "s/DMEM_BASE/$dmembase/g" pmem.def
@@ -163,6 +159,11 @@ sed -i "s/DMEM_SIZE/$dmemsize/g" pmem.def
 sed -i "s/SMEM_SIZE/$smemsize/g" pmem.def
 make
 cd $cwd
+
+echo "dmembase=$dmembase, dmemsize=$dmemsize"
+echo "pmembase=$pmembase, pmemsize=$pmemsize"
+echo "smembase=$smembase, smemsize=$smemsize"
+echo "kmembase=$skeybase, kmemsize=$skeysize"
 
 # Generate Program memory file
 echo "Convert IHEX file to Verilog MEMH format..."

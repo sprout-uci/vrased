@@ -40,41 +40,10 @@ input   [15:0]  dma_addr;
 input           dma_en;
 output          reset;
 
-// MACROS ///////////////////////////////////////////
-parameter SDATA_BASE = 16'h400;
-parameter SDATA_SIZE = 16'hC00;
-//
-parameter HMAC_BASE = 16'h0230;
-parameter HMAC_SIZE = 16'h0020;
-//
-parameter SMEM_BASE = `SMEM_BASE;
-parameter SMEM_SIZE = `SMEM_SIZE;
-//
-parameter KMEM_BASE = `SKEY_BASE;
-parameter KMEM_SIZE = `SKEY_SIZE;
-//
-/* NOTE: the original CTR_BASE value 0x9000 falls out of the RAM range. We
- * changed this here to the address used by RATA
- * (https://github.com/sprout-uci/RATA/blob/main/vrased/sw-att/wrapper.c#L3).
- */
-parameter CTR_BASE = 16'h0270;
-parameter CTR_SIZE = 16'h001F;
-/////////////////////////////////////////////////////
-
 parameter RESET_HANDLER = 16'h0000;
 
 wire    X_stack_reset;
 X_stack #(
-    .SDATA_BASE (SDATA_BASE),
-    .SDATA_SIZE (SDATA_SIZE),
-    .HMAC_BASE  (HMAC_BASE),
-    .HMAC_SIZE  (HMAC_SIZE),
-    .SMEM_BASE  (SMEM_BASE),
-    .SMEM_SIZE  (SMEM_SIZE),
-    .KMEM_BASE  (KMEM_BASE),
-    .KMEM_SIZE  (KMEM_SIZE),
-    .CTR_BASE  (CTR_BASE),
-    .CTR_SIZE  (CTR_SIZE),
     .RESET_HANDLER  (RESET_HANDLER)
 ) X_stack_0 (
     .pc         (pc),
@@ -86,10 +55,6 @@ X_stack #(
 
 wire    AC_reset;
 AC #(
-    .SMEM_BASE  (SMEM_BASE),
-    .SMEM_SIZE  (SMEM_SIZE),
-    .KMEM_BASE  (KMEM_BASE),
-    .KMEM_SIZE  (KMEM_SIZE),
     .RESET_HANDLER  (RESET_HANDLER)
 ) AC_0 (
     .pc         (pc),
@@ -100,8 +65,6 @@ AC #(
 
 wire    atomicity_reset;
 atomicity #(
-    .SMEM_BASE  (SMEM_BASE),
-    .SMEM_SIZE  (SMEM_SIZE),
     .RESET_HANDLER  (RESET_HANDLER)
 ) atomicity_0 (
     .pc         (pc),
@@ -110,8 +73,6 @@ atomicity #(
 
 wire    dma_AC_reset;
 dma_AC #(
-    .KMEM_BASE  (KMEM_BASE),
-    .KMEM_SIZE  (KMEM_SIZE),
     .RESET_HANDLER  (RESET_HANDLER)
 ) dma_AC_0 (
     .pc         (pc),
@@ -122,8 +83,6 @@ dma_AC #(
 
 wire   dma_detect_reset;
 dma_detect #(
-    .SMEM_BASE  (SMEM_BASE),
-    .SMEM_SIZE  (SMEM_SIZE),
     .RESET_HANDLER  (RESET_HANDLER)
 ) dma_write_detect_0 (
     .pc         (pc),
@@ -134,10 +93,6 @@ dma_detect #(
 
 wire   dma_X_stack_reset;
 dma_X_stack #(
-    .SDATA_BASE  (SDATA_BASE),
-    .SDATA_SIZE  (SDATA_SIZE),
-    .CTR_BASE  (CTR_BASE),
-    .CTR_SIZE  (CTR_SIZE),
     .RESET_HANDLER  (RESET_HANDLER)
 ) dma_X_stack_0 (
     .pc         (pc),

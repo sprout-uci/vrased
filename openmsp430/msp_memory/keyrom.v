@@ -31,6 +31,7 @@
 //              - Olivier Girard,    olgirard@gmail.com
 //              - Aurélien Francillon
 //
+`include "openMSP430_defines.v"
 
 module keyrom (
 // OUTPUTs
@@ -44,8 +45,8 @@ module keyrom (
 
 // PARAMETERs
 //============
-parameter ADDR_MSB   =  4;         // MSB of the address bus
-parameter MEM_SIZE   =  20;       // Memory size in bytes
+parameter ADDR_MSB   = `SKEY_MSB;         // MSB of the address bus
+parameter MEM_SIZE   = `SKEY_SIZE;        // Memory size in bytes
 
 // OUTPUTs
 //============

@@ -1,3 +1,4 @@
+`include "openMSP430_defines.v"
 
 module  dma_AC (
     pc,
@@ -13,11 +14,6 @@ input           dma_en;
 output          reset;
 
 // MACROS ///////////////////////////////////////////
-//parameter SMEM_BASE = 16'hE000;
-//parameter SMEM_SIZE = 16'h1000;
-//
-parameter KMEM_BASE = 16'hFEFE;
-parameter KMEM_SIZE = 16'h001F;
 /////////////////////////////////////////////////////
 
 
@@ -37,7 +33,7 @@ initial
         key_res = 1'b1;
     end
 
-wire invalid_access_key = (dma_addr >= KMEM_BASE && dma_addr < KMEM_BASE + KMEM_SIZE) && dma_en;
+wire invalid_access_key = (dma_addr >= `KMEM_BASE && dma_addr < `KMEM_BASE + `KMEM_SIZE) && dma_en;
 
 always @(*) 
 if( state == RUN && invalid_access_key) 

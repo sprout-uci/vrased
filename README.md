@@ -109,6 +109,7 @@ shortcomings of the verified HW-Mod-Auth module:
 To run the VRASED attacks, simply proceed as follows:
 
 ```bash
+$ mkdir build && cd build && cmake .. && cd ..
 $ cd scripts
 $ ./B-1-dma-translation.sh # or select other attack scripts in this directory
 ```

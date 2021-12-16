@@ -1,3 +1,4 @@
+`include "openMSP430_defines.v"
 
 module  AC (
     //clk,
@@ -17,11 +18,11 @@ input           data_en;
 output          reset;
 
 // MACROS ///////////////////////////////////////////
-parameter SMEM_BASE = 16'hE000;
-parameter SMEM_SIZE = 16'h1000;
+parameter SMEM_BASE = `SMEM_BASE;
+parameter SMEM_SIZE = `SMEM_SIZE;
 //
-parameter KMEM_BASE = 16'hFEFE;
-parameter KMEM_SIZE = 16'h001F;
+parameter KMEM_BASE = `KMEM_BASE;
+parameter KMEM_SIZE = `KMEM_SIZE;
 /////////////////////////////////////////////////////
 
 

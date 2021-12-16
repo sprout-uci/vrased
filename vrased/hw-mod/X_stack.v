@@ -1,3 +1,5 @@
+`include "openMSP430_defines.v"
+
 module  X_stack (
     clk,
     pc,
@@ -17,21 +19,6 @@ input           r_en;
 input           w_en;
 output          reset;
 
-// MACROS ///////////////////////////////////////////
-parameter SDATA_BASE = 16'hA000;
-parameter SDATA_SIZE = 16'h1000;
-//
-parameter HMAC_BASE = 16'h8000;
-parameter HMAC_SIZE = 16'h001F;
-//
-parameter SMEM_BASE = 16'hE000;
-parameter SMEM_SIZE = 16'h1000;
-//
-parameter KMEM_BASE = 16'hFEFE;
-parameter KMEM_SIZE = 16'h001F;
-/////////////////////////////////////////////////////
-
-
 parameter RESET_HANDLER = 16'hfffe;
 parameter RUN  = 1'b0, KILL = 1'b1;
 //-------------Internal Variables---------------------------
@@ -45,16 +32,16 @@ initial
         key_res = 1'b0;
     end
 
-wire pc_not_in_srom = pc < SMEM_BASE || pc > SMEM_BASE + SMEM_SIZE -2;
+wire pc_not_in_srom = pc < `SMEM_BASE || pc > `SMEM_BASE + `SMEM_SIZE -2;
 wire pc_in_srom = !pc_not_in_srom;
 
-wire daddr_not_in_sdata = data_addr < SDATA_BASE || data_addr > SDATA_BASE + SDATA_SIZE -1;
+wire daddr_not_in_sdata = data_addr < `SDATA_BASE || data_addr > `SDATA_BASE + `SDATA_SIZE -1;
 wire daddr_in_sdata = !daddr_not_in_sdata;
 
-wire daddr_not_in_krom = data_addr < KMEM_BASE || data_addr > KMEM_BASE + KMEM_SIZE -1;
+wire daddr_not_in_krom = data_addr < `KMEM_BASE || data_addr > `KMEM_BASE + `KMEM_SIZE -1;
 wire daddr_in_krom = !daddr_not_in_krom;
 
-wire daddr_not_in_HMAC = data_addr < HMAC_BASE || data_addr > HMAC_BASE + HMAC_SIZE -1;
+wire daddr_not_in_HMAC = data_addr < `HMAC_BASE || data_addr > `HMAC_BASE + `HMAC_SIZE -1;
 wire daddr_in_HMAC = !daddr_not_in_HMAC;
 
 wire violation1 = pc_not_in_srom && daddr_in_sdata && (r_en || w_en);

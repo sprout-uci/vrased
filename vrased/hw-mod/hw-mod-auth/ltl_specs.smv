@@ -1,21 +1,4 @@
--- CODE RESERVED ROM
-    SMEM_BASE := 0uh16_A000;
-    SMEM_SIZE := 0uh16_4000;
--- KEY RESERVED ROM
-    KMEM_BASE := 0uh16_6A00;
-    KMEM_SIZE := 0uh16_001F;
--- STACK RESERVED ROM
-    SDATA_BASE := 0uh16_0400;
-    SDATA_SIZE := 0uh16_0C00;
--- HMAC OUTPUT RESERVED ROM
-    HMAC_BASE := 0uh16_0230;
-    HMAC_SIZE := 0uh16_0020;
--- COUNTER 
-    CTR_BASE := 0uh16_0270;
-    CTR_SIZE := 0uh16_0020;
---
-    LAST_SMEM_ADDR := SMEM_BASE + SMEM_SIZE - 0uh16_2;
-    RESET_HANDLER := 0uh16_0000;
+#include "vrased-config.smv"
 
     pc_in_srom := "pc" >= SMEM_BASE & "pc" <= LAST_SMEM_ADDR;
     next_pc_in_srom := next("pc") >= SMEM_BASE & next("pc") <= LAST_SMEM_ADDR;

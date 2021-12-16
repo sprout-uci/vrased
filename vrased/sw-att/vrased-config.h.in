@@ -1,0 +1,13 @@
+#ifndef VRASED_CONFIG_H_INC
+#define VRASED_CONFIG_H_INC
+
+    #define KEY_ADDR        ${VRASED_KR_BASE}
+    #define KEY_SIZE        ${VRASED_KR_SIZE}
+
+    #define MAC_ADDR        ${VRASED_MR_BASE}
+    #define MAC_SIZE        ${VRASED_MR_SIZE}
+    #define CTR_ADDR        ${VRASED_CTR_BASE}
+
+    #define CTR_SIZE        ${VRASED_CTR_SIZE}
+
+#endif

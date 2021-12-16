@@ -1,3 +1,4 @@
+`include "openMSP430_defines.v"
 
 module  proof_reset (
     clk,
@@ -14,8 +15,6 @@ input   [15:0]  pc;
 output          res;
 
 // MACROS ///////////////////////////////////////////
-parameter SMEM_BASE = 16'hE000;
-parameter SMEM_SIZE = 16'h1000;
 parameter FST_POR_ADDR = 16'h1234;
 parameter LST_POR_ADDR = 16'h123F;
 parameter RESET_HANDLER = 16'hfffe;
@@ -39,7 +38,7 @@ wire is_fst_PoR = pc == FST_POR_ADDR;
 wire is_lst_PoR = pc == LST_POR_ADDR;
 wire is_lst_RC  = pc == LAST_SMEM_ADDR;
 wire PC_is_zero = pc == RESET_HANDLER;
-parameter LAST_SMEM_ADDR = SMEM_BASE + SMEM_SIZE - 2;
+parameter LAST_SMEM_ADDR = `SMEM_BASE + `SMEM_SIZE - 2;
 
 
 always @(posedge clk)

@@ -1,3 +1,4 @@
+`include "openMSP430_defines.v"
 
 module  dma_X_stack (
     clk,
@@ -14,12 +15,6 @@ input   [15:0]  dma_addr;
 input           dma_en;
 output          reset;
 
-// MACROS ///////////////////////////////////////////
-parameter SDATA_BASE = 16'hA000;
-parameter SDATA_SIZE = 16'h1000;
-//
-/////////////////////////////////////////////////////
-
 parameter RESET_HANDLER = 16'h0000;
 parameter RUN  = 1'b0, KILL = 1'b1;
 //-------------Internal Variables---------------------------
@@ -33,7 +28,7 @@ initial
         key_res = 1'b1;
     end
 
-wire invalid_access_x_stack = (dma_addr >= SDATA_BASE && dma_addr < SDATA_BASE + SDATA_SIZE) && dma_en;
+wire invalid_access_x_stack = (dma_addr >= `SDATA_BASE && dma_addr < `SDATA_BASE + `SDATA_SIZE) && dma_en;
 
 always @(posedge clk) 
 if( state == RUN && invalid_access_x_stack) 

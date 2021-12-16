@@ -46,6 +46,8 @@
 `include "openMSP430_undefines.v"
 `endif
 
+`include "vrased-config.v"
+
 //============================================================================
 //============================================================================
 // BASIC SYSTEM CONFIGURATION
@@ -93,16 +95,6 @@
 //`define DMEM_SIZE_512_B
 //`define DMEM_SIZE_256_B
 //`define DMEM_SIZE_128_B
-
-
-// Currently  supporting 32K and 16K SROM
-//`define SMEM_SIZE_32_KB
-`define SMEM_SIZE_16_KB
-
-// Definition of paramters used by the secure key module
-`define SKEY_SIZE 64
-`define SKEY_BASE 16'h6A00
-`define SKEY_AWIDTH 5
 
 
 // Include/Exclude Hardware Multiplier
@@ -661,27 +653,9 @@
   `define PER_SIZE          `PER_CUSTOM_SIZE
 `endif
 
-
-//
-// SROM MEMORY CONFIGURATION
-// currently only supporting 32K SROM
-//======================================
-
-// SROM Memory Size
-`ifdef SMEM_SIZE_32_KB
-  `define SMEM_AWIDTH      14
-  `define SMEM_SIZE     32768
-`endif
-
-`ifdef SMEM_SIZE_16_KB
-  `define SMEM_AWIDTH      13
-  `define SMEM_SIZE     16384
-`endif
-
 // Data Memory Base Adresses
 `define DMEM_BASE  `PER_SIZE
 `define PMEM_OFFSET (16'hFFFF - `PMEM_SIZE + 1)
-`define SMEM_BASE   (16'hFFFF - `PMEM_SIZE - `SMEM_SIZE + 1)
 
 // Program & Data Memory most significant address bit (for 16 bit words)
 `define PMEM_MSB   `PMEM_AWIDTH-1
