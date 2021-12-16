@@ -568,7 +568,7 @@ vrased vrased_0 (
     .dma_addr   ({dma_addr[15:1], 1'b0}),
     .dma_en     (dma_en),
 
-	.irq		(irq_detect),
+	.irq		(|irq | wdt_irq),
 
     .reset      (vrased_reset)
 );

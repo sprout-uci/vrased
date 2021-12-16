@@ -27,6 +27,9 @@ jobs:
           # Expect fail: mitigation applied
           - target: ./B-1-dma-translation.sh
             expect-fail: 1
+          # Expect fail: mitigation applied
+          - target: ./C-4-nemesis.sh
+            expect-fail: 1
           # Expect fail: the current HW-Mod-Auth proof fails(!)
           - vrased-hw-mod: hw-mod/hw-mod-auth
             target: ./D-hw-mod-proof.sh
