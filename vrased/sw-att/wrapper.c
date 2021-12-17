@@ -26,6 +26,32 @@ hmac(
 #if __ATTACK == 4 || __ATTACK == 5 || __ATTACK == 6
 
 /**
+ * Performs constant time comparison between to buffers
+ * Returns 0 if the first `n` bytes of the two buffers are equal, -1 otherwise
+ *
+ * NOTE: Force-inline function so it becomes part of SW-Att's ROM code section.
+ *
+ * NOTE: Function adapted from NaCL's libsodium, re-use allowed under ISC license.
+ */
+static inline __attribute__((always_inline))
+int cst_memeq(const unsigned char *x_, const unsigned char *y_,
+                                    const unsigned int n)
+{
+    const volatile unsigned char *volatile x =
+        (const volatile unsigned char *volatile) x_;
+    const volatile unsigned char *volatile y =
+        (const volatile unsigned char *volatile) y_;
+    volatile unsigned int d = 0U;
+    unsigned int i;
+
+    for (i = 0; i < n; i++) {
+        d |= x[i] ^ y[i];
+    }
+
+    return (1 & ((d - 1) >> 8)) - 1;
+}
+
+/**
  * VRASED_A: authenticated attestation
  * We based the code on the RATA implementation, which only differs from the code
  * in the appendix of VRASED in one place: it uses the MAC region to pass the challenge
@@ -37,13 +63,16 @@ __attribute__ ((section (".do_mac.call"))) void Hacl_HMAC_SHA2_256_hmac_entry()
   uint8_t key[KEY_SIZE] = {0};
   uint8_t verification[MAC_SIZE] = {0};
 
+  /* NOTE: CTR_ADDR and MAC_ADDR are not secret (i.e., publicly readible),
+   * so we can simply use standard (non-cst time) memcmp. */
   if (memcmp((uint8_t*) MAC_ADDR, (uint8_t*) CTR_ADDR, CTR_SIZE) > 0)
   {
     memcpy(key, (uint8_t*) KEY_ADDR, KEY_SIZE);
     hmac((uint8_t*) verification, (uint8_t*) key, (uint32_t) KEY_SIZE, (uint8_t*)MAC_ADDR, (uint32_t) MAC_SIZE);
 
     // Verifier Authentication before calling HMAC
-    if (memcmp((uint8_t*) VRF_AUTH, verification, MAC_SIZE) == 0)
+    /* NOTE: use cst-time memcmp for the secret (key-dependent) verification token */
+    if (cst_memeq((uint8_t*) VRF_AUTH, verification, MAC_SIZE) == 0)
     {
       memcpy((uint8_t*) CTR_ADDR, (uint8_t*) MAC_ADDR, CTR_SIZE);
 
