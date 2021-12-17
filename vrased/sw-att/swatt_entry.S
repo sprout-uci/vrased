@@ -21,9 +21,18 @@ swatt_entry:
     call #Hacl_HMAC_SHA2_256_hmac_entry
 
     /* 3. Cleanup and return to untrusted caller */
-    add #70, r1
+    clr r1
 
-    mov #swatt_cont_trampoline, r6
+    /* clear caller-save registers */
+    clr r15
+    clr r14
+    clr r13
+    clr r12
+
+    /* avoid leakage through arithmetic bits and zero flag */
+    clr r2
+
+    mov #swatt_cont_trampoline, r12
     br #__mac_leave
 
 /*
@@ -35,7 +44,7 @@ swatt_entry:
  */
     .section .do_mac.leave
 swatt_exit:
-    br r6
+    br r12
 
 
 /*********** UNTRUSTED VRASED WRAPPER CODE (outside SW-Att) ***********/
@@ -51,7 +60,12 @@ swatt_exit:
  * about or check untrusted parameters (cf. note that the HW-Mod implementation
  * enforces that the last SW-Att instruction cannot jump back to the middle,
  * but such enforcement appears not strictly necessary by LTL rules 3-4).
+ *
+ * NOTE: r12 is cleared and overwritten with the public known constant
+ * `#swatt_cont_trampoline` on SW-Att exit, but we additionally clear it here
+ * in untrusted code, so the tests don't flag a false-positive leakage.
  */
   .section .text
 swatt_cont_trampoline:
+    clr r12
     br &vrased_cont_adrs
