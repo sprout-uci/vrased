@@ -1,6 +1,6 @@
 # makfile configuration
 NAME            = vrased
-OBJECTS         = vrased.o rom_wrapper.o hacl_mac.lib dump_regs.o
+OBJECTS         = vrased.o rom_wrapper.o hacl_mac.lib dump_regs.o swatt_entry.o
 
 # Choose GCC toolchain prefix ('msp430' for MSPGCC / 'msp430-elf' for GCC RedHat/TI)
 MSPGCC_PFX      = msp430
@@ -16,12 +16,13 @@ OBJSIZE         = ${MSPGCC_PFX}-size
 
 # Attack test
 ATTACK ?= 0
+CFLAGS += -D__ATTACK=${ATTACK}
 
 .PHONY: all FORCE clean download download-jtag download-bsl dist
 
 #all should be the first target. it's built when make is runwithout args
 #all: srom_libc.a ${NAME}.o ${NAME}.elf ${NAME}.a43 ${NAME}.lst ${NAME}.size
-all: srom_libc.a hacl_mac.lib rom_wrapper.o ${NAME}.o ${NAME}.elf ${NAME}.a43 ${NAME}.lst ${NAME}.size
+all: srom_libc.a hacl_mac.lib rom_wrapper.o swatt_entry.o ${NAME}.o ${NAME}.elf ${NAME}.a43 ${NAME}.lst ${NAME}.size
 
 #additional rules for files
 ${NAME}.elf: ${OBJECTS}
@@ -39,11 +40,14 @@ ${NAME}.size: ${NAME}.elf
 ${NAME}.o: main.c
 	${CC} ${CFLAGS} -c -o $@ main.c
 
-dump_regs.o: dump_regs.S
-	${CC} ${CFLAGS} "-D__ATTACK=${ATTACK}" -c -o $@ $<
-
 rom_wrapper.o:
-	${CC} ${CFLAGS} "-D__ATTACK=${ATTACK}" -c -o $@ wrapper.c #./hacl_mac.lib
+	${CC} ${CFLAGS} -c -o $@ wrapper.c #./hacl_mac.lib
+
+%.o: %.c
+	${CC} ${CFLAGS} -c -o $@ $<
+
+%.o: %.S
+	${CC} ${CFLAGS} -c -o $@ $<
 
 hacl_mac.lib:
 	cd hacl-c ; \

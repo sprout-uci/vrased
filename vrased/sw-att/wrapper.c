@@ -8,12 +8,6 @@
 
 /*********** TRUSTED VRASED WRAPPER CODE (inside SW-Att) ***********/
 
-#define ATTEST_DATA_ADDR 0xE000
-#define ATTEST_SIZE 0x20
-
-/* Fields for VRASED_A */
-#define VRF_AUTH 0x0250
-
 extern void
 hmac(
   uint8_t *mac,
@@ -56,8 +50,7 @@ int cst_memeq(const unsigned char *x_, const unsigned char *y_,
  * We based the code on the RATA implementation, which only differs from the code
  * in the appendix of VRASED in one place: it uses the MAC region to pass the challenge
  * (which the base VRASED also does).
- * */
-
+ */
 __attribute__ ((section (".do_mac.call"))) void Hacl_HMAC_SHA2_256_hmac_entry()
 {
   uint8_t key[KEY_SIZE] = {0};
@@ -84,13 +77,7 @@ __attribute__ ((section (".do_mac.call"))) void Hacl_HMAC_SHA2_256_hmac_entry()
     }
   }
 
-  // setting the return addr:
-  __asm__ volatile("mov    #0x0300,   r6" "\n\t");
-  __asm__ volatile("mov    @(r6),     r6" "\n\t");
-
-  // postamble
-  __asm__ volatile("add     #70,    r1" "\n\t");
-  __asm__ volatile( "br      #__mac_leave" "\n\t");
+  return; /* to swatt_entry.S */
 }
 
 #else
@@ -120,22 +107,10 @@ __attribute__ ((section (".do_mac.call"))) void Hacl_HMAC_SHA2_256_hmac_entry() 
     // Stores the result in HMAC ADDR.
     hmac((uint8_t*) (MAC_ADDR), (uint8_t*) key, (uint32_t) MAC_SIZE, (uint8_t*) ATTEST_DATA_ADDR, (uint32_t) ATTEST_SIZE);
 
-	//return;
-
-    // setting the return addr:
-    __asm__ volatile("mov    #0x0300,   r6" "\n\t");
-    __asm__ volatile("mov    @(r6),     r6" "\n\t");
-
-    // postamble
-    __asm__ volatile("add     #70,    r1" "\n\t");
-    __asm__ volatile( "br      #__mac_leave" "\n\t");
+    return; /* to swatt_entry.S */
 }
 
 #endif
-
-__attribute__ ((section (".do_mac.leave"))) __attribute__((naked)) void Hacl_HMAC_SHA2_256_hmac_exit() {
-    __asm__ volatile("br   r6" "\n\t");
-}
 
 /*********** UNTRUSTED VRASED WRAPPER CODE (outside SW-Att) ***********/
 
@@ -247,6 +222,8 @@ int __attribute__ ((section (".noinit"))) attack_iteration;
 int __attribute__ ((section (".noinit"))) swatt_timings[3];
 int __attribute__ ((section (".noinit"))) reset_marker;
 int __attribute__ ((section (".noinit"))) have_reset;
+
+void *vrased_cont_adrs;
 
 void VRASED (uint8_t *challenge, uint8_t *response) {
     if (reset_marker == 0xdead)
@@ -414,8 +391,8 @@ void VRASED (uint8_t *challenge, uint8_t *response) {
 
     // Write return address of Hacl_HMAC_SHA2_256_hmac_entry
     // to RAM:
-    __asm__ volatile("mov    #cont_vrased,   r6" "\n\t");
-    __asm__ volatile("mov    #0x0300,   r5" "\n\t");
+    __asm__ volatile("mov    #cont_swatt_entry,   r6" "\n\t");
+    __asm__ volatile("mov    #vrased_cont_adrs,   r5" "\n\t");
     __asm__ volatile("mov    r0,        @(r5)" "\n\t");
     __asm__ volatile("mov    r6,        @(r5)" "\n\t");
 
@@ -440,8 +417,8 @@ void VRASED (uint8_t *challenge, uint8_t *response) {
 
     // Call SW-Att:
     __asm__ volatile ("nop\n\t"); /* timing alignment */
-    __asm__ volatile ("br #Hacl_HMAC_SHA2_256_hmac_entry\n\t");
-    __asm__ volatile("cont_vrased: \n\t");
+    __asm__ volatile ("br #swatt_entry\n\t");
+    __asm__ volatile("cont_swatt_entry: \n\t");
 
     #if __ATTACK == 7
       __asm__ volatile("br #dump_regs_after\n\t");

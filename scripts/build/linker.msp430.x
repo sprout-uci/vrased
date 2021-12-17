@@ -94,6 +94,8 @@ SECTIONS
   .srom :
   {
     PROVIDE (__mac_start = .) ;
+    *(.do_mac.entry)
+    . = ALIGN(2);
     *(.do_mac.call)
     . = ALIGN(2);
     PROVIDE (__mac_lib_start = .) ;

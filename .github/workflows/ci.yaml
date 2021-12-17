@@ -31,6 +31,9 @@ jobs:
           - target: ./B-2-key-size.sh
             expect-fail: 1
           # Expect fail: mitigation applied
+          - target: ./C-2-stack-pointer.sh
+            expect-fail: 1
+          # Expect fail: mitigation applied
           - target: ./C-3-auth-timing.sh
             expect-fail: 1
           # Expect fail: mitigation applied

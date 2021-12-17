@@ -1,13 +1,21 @@
 #ifndef VRASED_CONFIG_H_INC
 #define VRASED_CONFIG_H_INC
 
-    #define KEY_ADDR        ${VRASED_KR_BASE}
-    #define KEY_SIZE        ${VRASED_KR_SIZE}
+#define KEY_ADDR                ${VRASED_KR_BASE}
+#define KEY_SIZE                ${VRASED_KR_SIZE}
 
-    #define MAC_ADDR        ${VRASED_MR_BASE}
-    #define MAC_SIZE        ${VRASED_MR_SIZE}
-    #define CTR_ADDR        ${VRASED_CTR_BASE}
+#define MAC_ADDR                ${VRASED_MR_BASE}
+#define MAC_SIZE                ${VRASED_MR_SIZE}
 
-    #define CTR_SIZE        ${VRASED_CTR_SIZE}
+#define CTR_ADDR                ${VRASED_CTR_BASE}
+#define CTR_SIZE                ${VRASED_CTR_SIZE}
+
+#define EXCLUSIVE_STACK_BASE    (${VRASED_XS_BASE}+${VRASED_XS_SIZE})
+
+#define ATTEST_DATA_ADDR        0xE000
+#define ATTEST_SIZE             0x20
+
+/* Fields for VRASED_A */
+#define VRF_AUTH                0x0250
 
 #endif
