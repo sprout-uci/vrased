@@ -46,4 +46,4 @@ jobs:
         env:
           VRASED_HW_MOD: ${{ matrix.vrased-hw-mod }}
           EXPECT_FAIL: ${{ matrix.expect-fail }}
-        run: cd scripts && ${{ matrix.target }}
+        run: cd scripts && ./ci_wrapper.sh ${{ matrix.target }}

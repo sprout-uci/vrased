@@ -97,7 +97,8 @@ wire        [15:0] mem_val = mem[ram_addr];
 initial
    begin
       // Read memory file
-      $readmemh("./pmem.mem", mem);
+/* NOTE: already initialized in tb_openMSP430.v */
+//      $readmemh("./pmem.mem", mem);
 //      mem[ER_MAX_addr] <= 16'hE3AE;
 //      mem[OR_MAX_addr] <= 16'hF004;
 end

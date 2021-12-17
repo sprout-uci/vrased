@@ -201,6 +201,8 @@ void print_and_compare_regs(char *str1, struct regs_dump *regs_struct1,
 
     if (leak)
         printf("%d non-zero registers leaked!\n", leak);
+    else
+        printf("PoC failed\n");
 }
 
 /**
@@ -216,8 +218,9 @@ void print_and_compare_regs(char *str1, struct regs_dump *regs_struct1,
  * can also be detected by polling the `DMA_ATTACKER_PERSISTENT_FLAG` adress of
  * our custom DMA attacker peripheral.
  */
-int __attribute__ ((section (".noinit"))) reset_marker;
 int __attribute__ ((section (".noinit"))) attack_iteration;
+int __attribute__ ((section (".noinit"))) swatt_timings[3];
+int __attribute__ ((section (".noinit"))) reset_marker;
 int __attribute__ ((section (".noinit"))) have_reset;
 
 void VRASED (uint8_t *challenge, uint8_t *response) {
@@ -239,7 +242,11 @@ void VRASED (uint8_t *challenge, uint8_t *response) {
             "  nop \n"
             ".ENDR \n"
         );
+      } else {
+        printf("PoC failed\n");
+        return;
       }
+
       dump_buf("leak", (uint8_t*) MAC_ADDR, 0, 64);
       return;
     #endif
@@ -247,6 +254,8 @@ void VRASED (uint8_t *challenge, uint8_t *response) {
     #if __ATTACK == 2
       if (!have_reset)
         dump_buf("leak", (uint8_t*) KEY_ADDR, 31, 64);
+      else
+        printf("PoC failed\n");
       return;
     #endif
 
@@ -427,14 +436,27 @@ void VRASED (uint8_t *challenge, uint8_t *response) {
     // Enable interrupts:
     __eint();
 
+    #if __ATTACK == 3
+      /* Should have reset and never come here */
+      printf("PoC failed\n");
+      return;
+    #endif
+
     #if __ATTACK == 4
       uint16_t tar = TAR;
+      swatt_timings[attack_iteration-1] = tar;
       printf("Attack iteration %d, execution took %d cycles (%d bytes correct)\n",
         attack_iteration,
         tar,
         (tar - 14511) / 13); /* Cycle count: 14511 + (guessed_byte_count * 13) */
       if (attack_iteration <= 2) {
         goto attack4;
+      }
+      else if ((swatt_timings[0] == swatt_timings[1]) ||
+               (swatt_timings[1] == swatt_timings[2]) ||
+               (swatt_timings[0] == swatt_timings[2])) {
+        printf("PoC failed\n");
+        return;
       }
     #endif
 
