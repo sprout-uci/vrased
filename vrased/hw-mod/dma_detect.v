@@ -8,6 +8,7 @@ module  dma_detect (
 	irq,
 
     reset,
+    pc_in_rom,
 );
 input           clk;
 input   [15:0]  pc;
@@ -15,6 +16,7 @@ input   [15:0]  dma_addr;
 input           dma_en;
 input			irq;
 output          reset;
+output          pc_in_rom;
 
 parameter LAST_SMEM_ADDR = `SMEM_BASE + `SMEM_SIZE - 2;
 
@@ -58,5 +60,6 @@ else if (state == RUN)
 else key_res <= 1'b0;
 
 assign reset = key_res;
+assign pc_in_rom = is_in_rom;
 
 endmodule

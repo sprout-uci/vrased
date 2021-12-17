@@ -350,16 +350,14 @@ void VRASED (uint8_t *challenge, uint8_t *response) {
          * indicating that the comparison for the current byte succeeded, the
          * guessed value was correct.
          * */
-        if (!delayed) {
-          if (have_reset == 1) {
+        if ((have_reset == 1) && !delayed) {
             printf("First byte not guessed, retrying\n");
-          } else {
+        } else if ((have_reset == 2) && delayed) {
+            printf("First byte guessed, finishing\n");
+            return;
+        } else {
             printf("PoC failed\n");
             return;
-          }
-        } else {
-          printf("First byte guessed, finishing\n");
-          return;
         }
       } else {
         printf("First run\n");

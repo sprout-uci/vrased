@@ -33,6 +33,9 @@ jobs:
           # Expect fail: mitigation applied
           - target: ./C-4-nemesis.sh
             expect-fail: 1
+          # Expect fail: mitigation applied
+          - target: ./C-5-dma-sc.sh
+            expect-fail: 1
         exclude:
           # N/A: HW-Mod-Auth incorrectly does not reset on IRQ(!)
           - vrased-hw-mod: hw-mod/hw-mod-auth

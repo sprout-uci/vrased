@@ -23,7 +23,8 @@ module vrased (
 
     irq,
     
-    reset
+    reset,
+    swatt_exec,
 );
 input           clk;
 input   [15:0]  pc;
@@ -34,6 +35,7 @@ input   [15:0]  dma_addr;
 input           dma_en;
 input           irq;
 output          reset;
+output          swatt_exec;
 
 parameter RESET_HANDLER = 16'h0000;
 
@@ -91,7 +93,8 @@ dma_detect #(
     .dma_addr   (dma_addr),
     .dma_en     (dma_en),
 	.irq		(irq),
-    .reset      (dma_detect_reset) 
+    .reset      (dma_detect_reset),
+    .pc_in_rom  (swatt_exec)
 );
 
 wire   dma_X_stack_reset;

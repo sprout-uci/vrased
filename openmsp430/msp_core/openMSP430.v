@@ -266,6 +266,7 @@ wire               srom_cen;
 wire               srom_wen;
 wire        [15:0] srom_dout;
 wire               vrased_reset;
+wire               vrased_swatt_exec;
 
 wire [`SKEY_MSB:0] skey_addr;
 wire               skey_cen;
@@ -552,7 +553,8 @@ omsp_mem_backbone mem_backbone_0 (
     .smem_dout         (srom_dout),          // SROM Memory data output
     .skey_dout         (skey_dout),          // SKEY Memory data output
     .puc_rst           (puc_rst),            // Main system reset
-    .scan_enable       (scan_enable)         // Scan enable (active during scan shifting)
+    .scan_enable       (scan_enable),        // Scan enable (active during scan shifting)
+    .vrased_swatt_exec (vrased_swatt_exec)
 );
 
 
@@ -570,7 +572,8 @@ vrased vrased_0 (
 
 	.irq		(|irq | wdt_irq),
 
-    .reset      (vrased_reset)
+    .reset      (vrased_reset),
+    .swatt_exec (vrased_swatt_exec)
 );
 
 

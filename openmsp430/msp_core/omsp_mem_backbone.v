@@ -99,7 +99,8 @@ module  omsp_mem_backbone (
     smem_dout,                          // SROM Memory data output
     skey_dout,                      // SROM Memory data output
     puc_rst,                            // Main system reset
-    scan_enable                         // Scan enable (active during scan shifting)
+    scan_enable,                        // Scan enable (active during scan shifting)
+    vrased_swatt_exec
 );
 
 // OUTPUTs
@@ -159,6 +160,7 @@ input         [15:0] smem_dout;     // SROM Memory data output
 input         [15:0] skey_dout;     // Memory data output
 input                puc_rst;           // Main system reset
 input                scan_enable;       // Scan enable (active during scan shifting)
+input                vrased_swatt_exec;
 
 wire                 ext_mem_en;
 wire          [15:0] ext_mem_din;
@@ -193,7 +195,11 @@ assign      cpu_halt_cmd  =  dbg_halt_cmd | (dma_en & dma_priority);
 assign      dma_resp      = ~dbg_mem_en & ~(ext_dmem_sel | ext_pmem_sel | ext_per_sel | ext_skey_sel | ext_smem_sel) & dma_en;
 
 // Master interface access is ready when the memory access occures
-assign      dma_ready     = ~dbg_mem_en &  (ext_dmem_en  | ext_pmem_en  | ext_per_en | ext_skey_en | ext_smem_en | dma_resp);
+// NOTE: DMA is not allowed during SW-Att execution, as enforced in HW-Mod.
+// However, the cycle when the reset is being generated may still leak
+// side-channel information through dma_ready. We fix this here by
+// unconditionally masking dma_ready during SW-Att execution.
+assign      dma_ready     = ~dbg_mem_en & ~vrased_swatt_exec &  (ext_dmem_en  | ext_pmem_en  | ext_per_en | ext_skey_en | ext_smem_en | dma_resp);
 
 // Use delayed version of 'dma_ready' to mask the 'dma_dout' data output
 // when not accessed and reduce toggle rate (thus power consumption)
