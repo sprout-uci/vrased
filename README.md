@@ -15,7 +15,7 @@ A full reproducible build and reference output for all of the VRASED attack
 experiments, executed via a cycle-accurate `iverilog` simulation of the
 openMSP430 core, can be viewed in the [GitHub Actions log](https://github.com/martonbognar/vrased-gap/actions).
 We also integrated VRASED's machine-checked proofs into the CI framework,
-showing that our attacks remain entirely undedected by the current proof
+showing that our attacks remain entirely undetected by the current proof
 strategy.
 
 **:no_entry_sign: Mitigations.**
@@ -60,7 +60,7 @@ We provide more discussion on mitigations and guidelines in the paper.
 
 This repository is a fork of the upstream
 [sprout-uci/vrased](https://github.com/sprout-uci/vrased)
-repository that contains the source code of a verifiable remote attesation
+repository that contains the source code of a verifiable remote attestation
 hardware-software co-design, described in the following paper.
 
 > I. D. O. Nunes, K. Eldefrawy, N. Rattanavipanon, M. Steiner, and G. Tsudik, "VRASED: A verified hardware/software co-design for remote attestation," in 28th USENIX Security Symposium, 2019, pp. 1429–1446.
