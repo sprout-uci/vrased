@@ -25,7 +25,7 @@ branch, referenced in the table below.
 Note, however, that these patches merely fix the identified vulnerabilities in
 the VRASED reference implementation in an _ad-hoc_ manner.
 Specifically, our patches do not address the root cause for these oversights
-(i.e., in terms of preventing implementation-model mismatch, missing attacker
+(i.e., in terms of preventing implementation-model mismatches, missing attacker
 capabilities, deductive errors) and cannot in any other way guarantee the
 absence of further vulnerabilities.
 We provide more discussion on mitigations and guidelines in the paper.
