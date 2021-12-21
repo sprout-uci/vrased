@@ -81,6 +81,8 @@ At the time of writing, open-source VRASED-based security architectures include
 While we only validated the attacks in this repository on the original VRASED
 base architecture, they may similarly affect these derived architectures.
 
+![vrased-overview](vrased-overview.png)
+
 ## Attack code and experimental setup
 
 Our attacks are integrated into the _untrusted_ VRASED wrapper code.
