@@ -2,7 +2,7 @@
 
 [![CI](https://github.com/martonbognar/vrased-gap/actions/workflows/ci.yaml/badge.svg)](https://github.com/martonbognar/vrased-gap/actions/workflows/ci.yaml)
 
-This repository contains part of the source code accompanying our paper "Mind
+This repository contains part of the source code accompanying our [paper](https://mici.hu/papers/bognar2022gap.pdf) "Mind
 the Gap: Studying the Insecurity of Provably Secure Embedded Trusted Execution
 Architectures" to appear at the IEEE Symposium on Security and Privacy 2022.
 More information on the paper and links to other investigated systems can be
@@ -10,7 +10,7 @@ found in the top-level [gap-attacks](https://github.com/martonbognar/gap-attacks
 
 > M. Bognar, J. Van Bulck, and F. Piessens, "Mind the Gap: Studying the Insecurity of Provably Secure Embedded Trusted Execution Architectures," in 2022 IEEE Symposium on Security and Privacy (S&P).
 
-**:heavy_check_mark: Continuous integration.** 
+**:heavy_check_mark: Continuous integration.**
 A full reproducible build and reference output for all of the VRASED attack
 experiments, executed via a cycle-accurate `iverilog` simulation of the
 openMSP430 core, can be viewed in the [GitHub Actions log](https://github.com/martonbognar/vrased-gap/actions).
@@ -103,7 +103,7 @@ both the default [`hw-mod`](vrased/hw-mod) and the alternative
 Results for both versions of HW-Mod can be viewed in the [GitHub Actions
 log](https://github.com/martonbognar/vrased-gap/actions).
 
-**:warning: HW-Mod-Auth.** 
+**:warning: HW-Mod-Auth.**
 Importantly, our experiments revealed several divergences and additional
 shortcomings of the verified HW-Mod-Auth module:
 * HW-Mod-Auth does _not_ monitor the `irq` signal and, hence, does not comply
