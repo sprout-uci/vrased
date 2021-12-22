@@ -2,7 +2,7 @@
 
 [![CI](https://github.com/martonbognar/vrased-gap/actions/workflows/ci.yaml/badge.svg)](https://github.com/martonbognar/vrased-gap/actions/workflows/ci.yaml)
 
-This repository contains part of the source code accompanying our paper "Mind
+This repository contains part of the source code accompanying our [paper](https://mici.hu/papers/bognar2022gap.pdf) "Mind
 the Gap: Studying the Insecurity of Provably Secure Embedded Trusted Execution
 Architectures" to appear at the IEEE Symposium on Security and Privacy 2022.
 More information on the paper and links to other investigated systems can be
@@ -10,7 +10,7 @@ found in the top-level [gap-attacks](https://github.com/martonbognar/gap-attacks
 
 > M. Bognar, J. Van Bulck, and F. Piessens, "Mind the Gap: Studying the Insecurity of Provably Secure Embedded Trusted Execution Architectures," in 2022 IEEE Symposium on Security and Privacy (S&P).
 
-**:heavy_check_mark: Continuous integration.** 
+**:heavy_check_mark: Continuous integration.**
 A full reproducible build and reference output for all of the VRASED attack
 experiments, executed via a cycle-accurate `iverilog` simulation of the
 openMSP430 core, can be viewed in the [GitHub Actions log](https://github.com/martonbognar/vrased-gap/actions).
@@ -95,7 +95,7 @@ top-level attack runner script in the `scripts` directory).
 VRASED includes an alternative, and similarly verified,
 version of HW-Mod to optionally support verifier authentication (cf. paper).
 Unfortunately, however, while the added functionality to support verifier
-authentication is rather limited, both versions of HW-Mod do not share a
+authentication is rather minimal, the two versions of HW-Mod do not share a
 unified implementation nor proof code base.
 Our continuous integration setup, hence, runs all (applicable) attacks against
 both the default [`hw-mod`](vrased/hw-mod) and the alternative
@@ -103,13 +103,13 @@ both the default [`hw-mod`](vrased/hw-mod) and the alternative
 Results for both versions of HW-Mod can be viewed in the [GitHub Actions
 log](https://github.com/martonbognar/vrased-gap/actions).
 
-**:warning: HW-Mod-Auth.** 
+**:warning: HW-Mod-Auth.**
 Importantly, our experiments revealed several divergences and additional
 shortcomings of the verified HW-Mod-Auth module:
 * HW-Mod-Auth does _not_ monitor the `irq` signal and, hence, does not comply
   with the explicit VRASED atomicity design requirement. This important
   requirement also seems to be entirely missing from the HW-Mod-Auth LTL
-  requirements, and this implementation oversight was, hence, not caught by the
+  requirements, and therefore this implementation oversight was not caught by the
   proof.  (Also note that, in the absence of resets on interrupts, the
   C-4-nemesis side-channel attack, of course, does not apply to HW-Mod-Auth).
 * The HW-Mod-Auth implementation (but not proof, cf. below) interestingly
