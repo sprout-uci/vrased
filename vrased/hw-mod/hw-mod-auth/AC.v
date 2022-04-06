@@ -1,6 +1,6 @@
 
 module  AC (
-    //clk,
+    clk,
     pc,
     data_addr,
     data_en,
@@ -9,7 +9,7 @@ module  AC (
     reset,
 );
 
-//input		clk;
+input		clk;
 input   [15:0]  pc;
 //input		pc_en;
 input   [15:0]  data_addr;
@@ -17,18 +17,18 @@ input           data_en;
 output          reset;
 
 // MACROS ///////////////////////////////////////////
-parameter SMEM_BASE = 16'hE000;
-parameter SMEM_SIZE = 16'h1000;
+parameter SMEM_BASE = 16'hA000;
+parameter SMEM_SIZE = 16'h4000;
 //
 parameter KMEM_BASE = 16'hFEFE;
-parameter KMEM_SIZE = 16'h001F;
+parameter KMEM_SIZE = 16'h0040;
 /////////////////////////////////////////////////////
 
 
 
 parameter LAST_SMEM_ADDR = SMEM_BASE + SMEM_SIZE - 2;
 
-parameter RESET_HANDLER = 16'h0000;
+parameter RESET_HANDLER = 16'hfffe;
 parameter RUN  = 1'b0, KILL = 1'b1;
 //-------------Internal Variables---------------------------
 reg             state;
@@ -50,14 +50,14 @@ wire is_outside_rom = pc < SMEM_BASE | pc > LAST_SMEM_ADDR;
 wire access_key = (data_addr >= KMEM_BASE && data_addr < KMEM_BASE + KMEM_SIZE) && data_en;
 wire invalid_access_key = is_outside_rom && access_key;
 
-always @(*) 
+always @(posedge clk)
 if( state == RUN && invalid_access_key) 
     state <= KILL;
 else if (state == KILL && pc == RESET_HANDLER && !invalid_access_key)
     state <= RUN;
 else state <= state;
 
-always @(*)
+always @(posedge clk)
 if (state == RUN && invalid_access_key)
     key_res <= 1'b1;
 else if (state == KILL && pc == RESET_HANDLER && !invalid_access_key)

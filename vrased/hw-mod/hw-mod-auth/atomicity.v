@@ -1,14 +1,16 @@
 
 module  atomicity (
-    //clk,    //INPUT
+    clk,    //INPUT
     pc,     //INPUT
+    irq,
     //pc_en,
 
     reset   //OUTPUT
 );
 
-//input		    clk;
+input		    clk;
 input   [15:0]  pc;
+input           irq;
 //input	    	pc_en;
 output          reset;
 
@@ -20,11 +22,11 @@ parameter midRC = 3'b011;
 parameter kill = 3'b100;
 ///////////////////////////////////////////////////////////////////////
 
-parameter RESET_HANDLER = 16'h0000;
+parameter RESET_HANDLER = 16'hfffe;
 
 // MACROS ///////////////////////////////////////////
-parameter SMEM_BASE = 16'hE000;
-parameter SMEM_SIZE = 16'h1000;
+parameter SMEM_BASE = 16'hA000;
+parameter SMEM_SIZE = 16'h4000;
 parameter LAST_SMEM_ADDR = SMEM_BASE + SMEM_SIZE - 2;
 /////////////////////////////////////////////////////
 
@@ -45,9 +47,8 @@ wire is_first_rom = pc == SMEM_BASE;
 wire is_last_rom = pc == LAST_SMEM_ADDR;
 wire is_in_rom = is_mid_rom | is_first_rom | is_last_rom;
 wire is_outside_rom = pc < SMEM_BASE | pc > LAST_SMEM_ADDR;
-always @(*)
+always @(posedge clk)
 begin
-    //if(pc_en) begin
     case (pc_state)
         notRC:
             if (is_outside_rom)
@@ -103,14 +104,12 @@ begin
                 pc_state <= pc_state;
                 
     endcase
-    //end
-    //else pc_state <= pc_state;
 end
 
 ////////////// OUTPUT LOGIC //////////////////////////////////////
-always @(*)
+always @(posedge clk)
 begin
-    if ( /*pc_en &&*/ (
+    if ( (
         (pc_state == fstRC && !is_mid_rom && !is_first_rom) ||
         (pc_state == lastRC && !is_outside_rom && !is_last_rom) ||
         (pc_state == midRC && !is_last_rom && !is_mid_rom) ||

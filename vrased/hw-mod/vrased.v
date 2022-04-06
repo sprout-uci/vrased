@@ -4,7 +4,6 @@
 `include "dma_AC.v"	
 `include "dma_detect.v"	
 `include "dma_X_stack.v"
-`include "proof_reset.v"
 
 `ifdef OMSP_NO_INCLUDE
 `else
@@ -46,7 +45,7 @@ parameter SMEM_BASE = 16'hA000;
 parameter SMEM_SIZE = 16'h4000;
 //
 parameter KMEM_BASE = 16'h6A00;
-parameter KMEM_SIZE = 16'h001F;
+parameter KMEM_SIZE = 16'h0040;
 
 /////////////////////////////////////////////////////
 

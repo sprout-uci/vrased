@@ -15,8 +15,8 @@ input           dma_en;
 output          reset;
 
 // MACROS ///////////////////////////////////////////
-parameter SDATA_BASE = 16'hA000;
-parameter SDATA_SIZE = 16'h1000;
+parameter SDATA_BASE = 16'h400;
+parameter SDATA_SIZE = 16'hC00;
 //
 /////////////////////////////////////////////////////
 

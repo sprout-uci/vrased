@@ -19,5 +19,9 @@ run :
 verify :
 	sh verif-tools/run
 
+hw-auth-verify :
+	sh verif-tools/hw-auth-verify
+
+
 clean :
 	rm -rf simv *.mem pmem.inc stimulus.v tmp-build
