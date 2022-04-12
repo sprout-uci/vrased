@@ -24,7 +24,7 @@ parameter SDATA_SIZE = 16'hC00;
 parameter HMAC_BASE = 16'h8000;
 parameter HMAC_SIZE = 16'h0020;
 //
-parameter CTR_BASE = 16'h9000;
+parameter CTR_BASE = 16'h0270;
 parameter CTR_SIZE = 16'h0020;
 //
 parameter SMEM_BASE = 16'hA000;

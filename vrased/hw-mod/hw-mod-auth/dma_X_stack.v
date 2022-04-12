@@ -18,7 +18,7 @@ output          reset;
 parameter SDATA_BASE = 16'h400;
 parameter SDATA_SIZE = 16'hC00;
 //
-parameter CTR_BASE = 16'h9000;
+parameter CTR_BASE = 16'h0270;
 parameter CTR_SIZE = 16'h0020;
 //
 /////////////////////////////////////////////////////

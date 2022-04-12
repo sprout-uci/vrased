@@ -11,7 +11,7 @@
     HMAC_BASE := 0uh16_0230;
     HMAC_SIZE := 0uh16_0020;
 -- COUNTER 
-    CTR_BASE := 0uh16_9000;
+    CTR_BASE := 0uh16_0270;
     CTR_SIZE := 0uh16_0020;
 --
     LAST_SMEM_ADDR := SMEM_BASE + SMEM_SIZE - 0uh16_2;

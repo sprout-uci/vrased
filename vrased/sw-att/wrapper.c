@@ -3,7 +3,7 @@
 #define MAC_ADDR 0x0230
 #define KEY_ADDR 0x6A00
 #define ATTEST_DATA_ADDR 0xE000
-#define ATTEST_SIZE 0x10 //0x2000
+#define ATTEST_SIZE 0x2000
 
 extern void
 hmac(

@@ -47,7 +47,7 @@ parameter SMEM_SIZE = 16'h4000;
 parameter KMEM_BASE = 16'h6A00;
 parameter KMEM_SIZE = 16'h0040;
 //
-parameter CTR_BASE = 16'h9000;
+parameter CTR_BASE = 16'h0270;
 parameter CTR_SIZE = 16'h0020;
 
 /////////////////////////////////////////////////////
