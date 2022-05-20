@@ -25,8 +25,8 @@ parameter kill = 3'b100;
 parameter RESET_HANDLER = 16'hfffe;
 
 // MACROS ///////////////////////////////////////////
-parameter SMEM_BASE = 16'hE000;
-parameter SMEM_SIZE = 16'h1000;
+parameter SMEM_BASE = 16'hA000;
+parameter SMEM_SIZE = 16'h4000;
 parameter LAST_SMEM_ADDR = SMEM_BASE + SMEM_SIZE - 2;
 /////////////////////////////////////////////////////
 

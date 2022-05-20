@@ -1,20 +1,23 @@
 
 module  dma_detect (
+    clk,
     pc,
     dma_addr,
     dma_en,
+	irq,
 
     reset,
 );
-
+input           clk;
 input   [15:0]  pc;
 input   [15:0]  dma_addr;
 input           dma_en;
+input			irq;
 output          reset;
 
 // MACROS ///////////////////////////////////////////
-parameter SMEM_BASE = 16'hE000;
-parameter SMEM_SIZE = 16'h1000;
+parameter SMEM_BASE = 16'hA000;
+parameter SMEM_SIZE = 16'h4000;
 /////////////////////////////////////////////////////
 
 
@@ -40,16 +43,16 @@ wire is_last_rom = pc == LAST_SMEM_ADDR;
 wire is_in_rom = is_mid_rom | is_first_rom | is_last_rom;
 wire is_outside_rom = pc < SMEM_BASE | pc > LAST_SMEM_ADDR;
 
-wire invalid_dma = is_in_rom && dma_en;
+wire invalid_dma = is_in_rom && (dma_en || irq);
 
-always @(*) 
+always @(posedge clk)
 if( state == RUN && invalid_dma) 
     state <= KILL;
 else if (state == KILL && pc == RESET_HANDLER && !invalid_dma)
     state <= RUN;
 else state <= state;
 
-always @(*)
+always @(posedge clk)
 if (state == RUN && invalid_dma)
     key_res <= 1'b1;
 else if (state == KILL && pc == RESET_HANDLER && !invalid_dma)

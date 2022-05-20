@@ -16,8 +16,8 @@ input			irq;
 output          reset;
 
 // MACROS ///////////////////////////////////////////
-parameter SMEM_BASE = 16'hE000;
-parameter SMEM_SIZE = 16'h1000;
+parameter SMEM_BASE = 16'hA000;
+parameter SMEM_SIZE = 16'h4000;
 /////////////////////////////////////////////////////
 
 

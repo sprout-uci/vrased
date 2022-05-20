@@ -19,7 +19,7 @@ output          reset;
 //parameter SMEM_SIZE = 16'h1000;
 //
 parameter KMEM_BASE = 16'hFEFE;
-parameter KMEM_SIZE = 16'h001F;
+parameter KMEM_SIZE = 16'h0040;
 /////////////////////////////////////////////////////
 
 

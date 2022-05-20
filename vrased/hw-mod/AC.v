@@ -17,11 +17,11 @@ input           data_en;
 output          reset;
 
 // MACROS ///////////////////////////////////////////
-parameter SMEM_BASE = 16'hE000;
-parameter SMEM_SIZE = 16'h1000;
+parameter SMEM_BASE = 16'hA000;
+parameter SMEM_SIZE = 16'h4000;
 //
 parameter KMEM_BASE = 16'hFEFE;
-parameter KMEM_SIZE = 16'h001F;
+parameter KMEM_SIZE = 16'h0040;
 /////////////////////////////////////////////////////
 
 

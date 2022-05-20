@@ -1,5 +1,6 @@
 
 module  dma_AC (
+    clk,
     pc,
     dma_addr,
     dma_en,
@@ -7,6 +8,7 @@ module  dma_AC (
     reset,
 );
 
+input           clk;
 input   [15:0]  pc;
 input   [15:0]  dma_addr;
 input           dma_en;
@@ -17,7 +19,7 @@ output          reset;
 //parameter SMEM_SIZE = 16'h1000;
 //
 parameter KMEM_BASE = 16'hFEFE;
-parameter KMEM_SIZE = 16'h001F;
+parameter KMEM_SIZE = 16'h0040;
 /////////////////////////////////////////////////////
 
 
@@ -39,14 +41,14 @@ initial
 
 wire invalid_access_key = (dma_addr >= KMEM_BASE && dma_addr < KMEM_BASE + KMEM_SIZE) && dma_en;
 
-always @(*) 
+always @(posedge clk)
 if( state == RUN && invalid_access_key) 
     state <= KILL;
 else if (state == KILL && pc == RESET_HANDLER && !invalid_access_key)
     state <= RUN;
 else state <= state;
 
-always @(*)
+always @(posedge clk)
 if (state == RUN && invalid_access_key)
     key_res <= 1'b1;
 else if (state == KILL && pc == RESET_HANDLER && !invalid_access_key)

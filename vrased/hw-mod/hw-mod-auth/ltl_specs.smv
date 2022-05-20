@@ -11,7 +11,7 @@
     HMAC_BASE := 0uh16_0230;
     HMAC_SIZE := 0uh16_0020;
 -- COUNTER 
-    CTR_BASE := 0uh16_9000;
+    CTR_BASE := 0uh16_0270;
     CTR_SIZE := 0uh16_0020;
 --
     LAST_SMEM_ADDR := SMEM_BASE + SMEM_SIZE - 0uh16_2;
@@ -42,6 +42,7 @@ LTLSPEC G ((!pc_in_srom & access_key) -> "reset");
 -- Atomicity Rules: (1) cannot leave in the middle of ROM code and (2) cannot jump into the middle of ROM code ---
 LTLSPEC G ( !"reset" & pc_in_srom & !next_pc_in_srom -> "pc" = LAST_SMEM_ADDR | next("reset") );
 LTLSPEC G ( !"reset" & !pc_in_srom & next_pc_in_srom -> next("pc") = SMEM_BASE | next("reset") );
+LTLSPEC G ( "irq" & pc_in_srom -> "reset");
 
 -- Exclusive Access to Secure Stack: (1) Only ROM code can read/write the stack and (2) ROM code cannot write outside the stack ---
 LTLSPEC G ((pc_not_in_srom & ("data_en" | "data_wr") & daddr_in_sdata) -> "reset");
