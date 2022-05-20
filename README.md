@@ -172,7 +172,7 @@ For VRASED end-to-end soundness and security computer proofs check the readme fi
 
 VRASED verification extends exclusively to the RA module (within VRASED directory in this repo).
 
-As noted on VRASED paper, verification of the underlying MCU core or proving the correctness of the integration of VRASED module with any specific core is not the focus of this project.
+As noted in VRASED paper, verification of the underlying MCU core or proving the correctness of the integration of VRASED module with any specific core is not the focus of this project.
 VRASED RA module is verified for a generic machine model (its integration with the openMSP430 core is done only as exemplary prototype). Assuring that the axioms in VRASED machine model hold when VRASED is instantiated to a particular MCU core is required in order to obtain VRASED guarantees.
 
 For example, [this paper](https://jovanbulck.github.io/files/oakland22-gap.pdf) discusses examples where machine model axioms were not carefully observed (in the particular case of the openMSP430-based sample prototype) or intentionally removed (e.g., hardware attacks that modify code in ROM or introduce malicious yet trusted peripherals within the MCU internal bus), leading to important security consequences. We note however that none of the reported issues lie within VRASED verified RA module or falsify verified properties, but stem inobservance or active removal of required assumptions.
