@@ -176,9 +176,9 @@ As noted on VRASED paper, verification of the underlying MCU core or proving the
 VRASED RA module is verified for a generic machine model (its integration with the openMSP430 core is done only as exemplary prototype). Assuring that the axioms in VRASED machine model hold when VRASED is instantiated to a particular MCU core is required in order to obtain VRASED guarantees.
 
 For example, [this paper](https://jovanbulck.github.io/files/oakland22-gap.pdf) discusses examples where machine model axioms were not carefully observed (in the particular case of the openMSP430-based sample prototype) or intentionally removed (e.g., hardware attacks that modify code in ROM or intruduce malicious yet trusted peripherals within the MCU internal bus), leading to important security consequences. We note however that none of the reported issues lie within VRASED verified RA module or falsify verified properties, but stem inobservance or active removal of required assumptions.
-In sum, two out of the seven reported issues, led to modifications to the openMSP430-based (unverified) instanciation of VRASED to correctly observe axioms regarding MCU signals.
-Another two stem from invasive hardware modification, that violate VRASED threat model.
-The remaining three do not apply to VRASED TCB but to a modified fork of the VRASED project that was at the time under construction.
-We provicde comments about the reported issues [here](https://github.com/sprout-uci/vrased/blob/master/docs/comments_gap.pdf) and thank the authors M. Bognar, J. Van Bulck and F. Piessens for their study casting light on the importance of fact-checking assumptions made by provably secure systems.
+In sum, two 2 of the 7 reported issues, led to modifications to the openMSP430-based (unverified) instanciation of VRASED to correctly observe axioms regarding MCU signals.
+Another 2 issues stem from invasive hardware modifications, that violate VRASED threat model.
+The remaining 3 do not apply to VRASED verified TCB but to a modified fork of the VRASED project that was, at the time, under construction.
+We provicde more detailed comments about the reported issues [here](https://github.com/sprout-uci/vrased/blob/master/docs/comments_gap.pdf) and thank the authors M. Bognar, J. Van Bulck and F. Piessens for their study emphasizing the importance of fact-checking assumptions made by provably secure systems.
 
 See VRASED [paper](https://www.usenix.org/system/files/sec19-nunes.pdf) for details on the machine model requirements and verified guarantees (that apply if and only if the machine model requirements are observed).
